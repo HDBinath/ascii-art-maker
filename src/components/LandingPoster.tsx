@@ -46,6 +46,7 @@ export const LandingPoster: React.FC = () => {
   const [isAnim, setIsAnim] = useState<boolean>(true);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [pillText, setPillText] = useState<string>('Launch Studio');
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   const stageRef = useRef<HTMLElement | null>(null);
   const flowerRef = useRef<HTMLDivElement | null>(null);
@@ -64,6 +65,15 @@ export const LandingPoster: React.FC = () => {
   const lastSampleRef = useRef<{ x: number; y: number } | null>(null);
   const timeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
+
+  // Scroll listener for floating header
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 80);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Remove .anim class after entrance choreography
   useEffect(() => {
@@ -285,6 +295,35 @@ export const LandingPoster: React.FC = () => {
 
   return (
     <div className={`landing-page-root ${isAnim ? 'anim' : ''}`}>
+      {/* Floating Sticky Navigation Bar when scrolled */}
+      <header className={`landing-floating-nav ${isScrolled ? 'visible' : ''}`} aria-label="Quick navigation">
+        <Link href="#home" className="floating-brand">
+          <svg className="w-5 h-5" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+            <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+            <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+            <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+          </svg>
+          <span className="floating-brand-title">ORBIT</span>
+        </Link>
+
+        <nav className="floating-nav-links">
+          <Link href="#home">Home</Link>
+          <Link href="#resources">Engines</Link>
+          <Link href="#benefits">Palettes</Link>
+          <Link href="#contact">Studio</Link>
+        </nav>
+
+        <button
+          type="button"
+          className="floating-pill-cta"
+          onClick={handlePillClick}
+        >
+          <span>{pillText}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </header>
+
       {/* ====================================================================
           1. HERO POSTER SECTION (#home)
           ==================================================================== */}
