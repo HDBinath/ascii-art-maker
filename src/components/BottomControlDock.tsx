@@ -158,9 +158,9 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
       />
 
       <div className="bottom-dock-container">
-        {/* Source Switcher Toolbar */}
+        {/* 1. SOURCE SELECTOR */}
         <div className="dock-column dock-source-col">
-          <span className="dock-col-label"><UploadCloud className="w-3.5 h-3.5" /> SOURCE</span>
+          <span className="dock-col-label"><UploadCloud className="w-3.5 h-3.5 text-green-400" /> SOURCE INPUT</span>
           <div className="dock-button-stack">
             <button
               type="button"
@@ -172,7 +172,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
               }}
               title="Upload New Image File"
             >
-              <UploadCloud className="w-3.5 h-3.5" />
+              <UploadCloud className="w-4 h-4" />
               <span>UPLOAD IMAGE</span>
             </button>
 
@@ -185,18 +185,18 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
               }}
               title="Toggle Live Webcam Feed"
             >
-              <Camera className="w-3.5 h-3.5" />
-              <span>{sourceType === 'webcam' ? 'STOP CAM' : 'WEBCAM'}</span>
+              <Camera className="w-4 h-4" />
+              <span>{sourceType === 'webcam' ? 'STOP WEBCAM' : 'START WEBCAM'}</span>
             </button>
           </div>
         </div>
 
         <div className="dock-divider" />
 
-        {/* Signal Gain Sliders */}
+        {/* 2. SIGNAL GAIN CONTROLS */}
         <div className="dock-column dock-gain-col">
-          <span className="dock-col-label"><Sliders className="w-3.5 h-3.5" /> SIGNAL GAIN</span>
-          <div className="dock-slider-row">
+          <span className="dock-col-label"><Sliders className="w-3.5 h-3.5 text-cyan-400" /> SIGNAL GAIN</span>
+          <div className="dock-sliders-cluster">
             <div className="dock-slider-unit">
               <div className="dock-slider-label">
                 <span>CONTRAST</span>
@@ -247,23 +247,23 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
         <div className="dock-divider" />
 
-        {/* Dynamic Mode Controls */}
+        {/* 3. DYNAMIC MODE ENGINE CONTROLS */}
         {options.mode === 'dither' ? (
           <>
             {/* Dither Algorithm & Sliders */}
             <div className="dock-column dock-main-controls-col">
-              <span className="dock-col-label"><Layers className="w-3.5 h-3.5" /> DITHER ALGORITHM</span>
+              <span className="dock-col-label"><Layers className="w-3.5 h-3.5 text-pink-400" /> DITHER ALGORITHM</span>
               <div className="dock-pill-scroll">
                 {(
                   [
                     ['floyd-steinberg', 'Floyd-Steinberg'],
-                    ['atkinson', 'Atkinson'],
+                    ['atkinson', 'Atkinson (Mac)'],
                     ['bayer-4', 'Bayer 4×4'],
                     ['bayer-8', 'Bayer 8×8'],
                     ['sierra', 'Sierra Lite'],
                     ['burkes', 'Burkes'],
-                    ['halftone', 'Halftone'],
-                    ['noise', 'Noise'],
+                    ['halftone', 'Halftone Dots'],
+                    ['noise', 'Blue Noise'],
                     ['threshold', 'Threshold'],
                   ] as [DitherAlgorithm, string][]
                 ).map(([algo, label]) => (
@@ -278,7 +278,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
                 ))}
               </div>
 
-              <div className="dock-slider-row mt-1">
+              <div className="dock-sliders-cluster mt-1">
                 <div className="dock-slider-unit">
                   <div className="dock-slider-label">
                     <span>PIXEL SIZE</span>
@@ -317,7 +317,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
             {/* Dither Palette Selector */}
             <div className="dock-column dock-palettes-col">
-              <span className="dock-col-label"><Palette className="w-3.5 h-3.5" /> PALETTES</span>
+              <span className="dock-col-label"><Palette className="w-3.5 h-3.5 text-amber-400" /> COLOR PALETTES</span>
               <div className="dock-palettes-scroll">
                 {(Object.keys(PRESET_PALETTES) as PaletteName[]).map((palKey) => {
                   const pal = PRESET_PALETTES[palKey];
@@ -344,8 +344,8 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
           <>
             {/* ASCII & Hybrid Grid Controls */}
             <div className="dock-column dock-main-controls-col">
-              <span className="dock-col-label"><Type className="w-3.5 h-3.5" /> ASCII RESOLUTION</span>
-              <div className="dock-slider-row">
+              <span className="dock-col-label"><Type className="w-3.5 h-3.5 text-green-400" /> ASCII GRID & CHARACTERS</span>
+              <div className="dock-sliders-cluster">
                 <div className="dock-slider-unit">
                   <div className="dock-slider-label">
                     <span>COLUMNS</span>
@@ -414,21 +414,21 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
             {/* ASCII Themes */}
             <div className="dock-column dock-theme-col">
-              <span className="dock-col-label"><Palette className="w-3.5 h-3.5" /> COLOR THEME</span>
-              <div className="dock-button-stack">
+              <span className="dock-col-label"><Palette className="w-3.5 h-3.5 text-pink-400" /> COLOR THEME</span>
+              <div className="dock-theme-grid">
                 {(
                   [
-                    ['matrix', 'Matrix (#00ff41)'],
-                    ['amber', 'Amber CRT (#ffb000)'],
+                    ['matrix', 'Matrix Phosphor'],
+                    ['amber', 'Amber CRT'],
                     ['synthwave', 'Synthwave Neon'],
-                    ['color', 'RGB Color'],
+                    ['color', 'RGB Full Color'],
                     ['bw', 'Monochrome B&W'],
                   ] as const
                 ).map(([tMode, label]) => (
                   <button
                     key={tMode}
                     type="button"
-                    className={`dock-pill-btn text-left ${options.asciiColorMode === tMode ? 'active' : ''}`}
+                    className={`dock-theme-btn ${options.asciiColorMode === tMode ? 'active' : ''}`}
                     onClick={() => handlePillClick('asciiColorMode', tMode)}
                   >
                     {label}
@@ -441,17 +441,17 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
         <div className="dock-divider" />
 
-        {/* Export Actions */}
+        {/* 4. EXPORT HUB */}
         <div className="dock-column dock-export-col">
-          <span className="dock-col-label"><Download className="w-3.5 h-3.5" /> EXPORT</span>
+          <span className="dock-col-label"><Download className="w-3.5 h-3.5 text-green-400" /> EXPORT ACTIONS</span>
           <div className="dock-button-stack">
             <button
               type="button"
               className="dock-export-btn primary"
               onClick={handleDownloadPng}
-              title="Download High-Res PNG"
+              title="Download High-Res PNG Image"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4" />
               <span>DOWNLOAD PNG</span>
             </button>
 
@@ -461,27 +461,27 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
                   type="button"
                   className="dock-export-btn secondary"
                   onClick={handleDownloadTxt}
-                  title="Save .TXT"
+                  title="Save .TXT plain text file"
                 >
-                  <FileText className="w-3 h-3" />
+                  <FileText className="w-3.5 h-3.5" />
                   <span>.TXT</span>
                 </button>
                 <button
                   type="button"
                   className="dock-export-btn secondary"
                   onClick={handleDownloadHtml}
-                  title="Export .HTML"
+                  title="Export styled .HTML webpage"
                 >
-                  <Code className="w-3 h-3" />
+                  <Code className="w-3.5 h-3.5" />
                   <span>.HTML</span>
                 </button>
                 <button
                   type="button"
                   className="dock-export-btn secondary"
                   onClick={handleCopyClipboard}
-                  title="Copy Text"
+                  title="Copy ASCII text to clipboard"
                 >
-                  <Copy className="w-3 h-3" />
+                  <Copy className="w-3.5 h-3.5" />
                   <span>COPY</span>
                 </button>
               </div>

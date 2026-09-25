@@ -554,22 +554,27 @@ body {
 
 /* Consolidated Bottom Control Dock */
 .bottom-dock-wrapper {
+  width: 100%;
   background: var(--bg-dock);
   border-top: 1px solid var(--border-neon);
   backdrop-filter: blur(20px);
   z-index: 100;
   flex-shrink: 0;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
 }
 
 .bottom-dock-container {
   display: flex;
   align-items: center;
-  height: var(--dock-h);
-  padding: 8px 16px;
-  gap: 12px;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  min-height: 120px;
+  padding: 10px 24px;
+  gap: 16px;
   overflow-x: auto;
-  overflow-y: hidden;
 }
 
 .bottom-dock-container::-webkit-scrollbar {
@@ -577,7 +582,7 @@ body {
 }
 
 .bottom-dock-container::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 65, 0.2);
+  background: rgba(0, 255, 65, 0.25);
   border-radius: 2px;
 }
 
@@ -586,6 +591,11 @@ body {
   flex-direction: column;
   gap: 6px;
   flex-shrink: 0;
+}
+
+.dock-main-controls-col {
+  flex: 1;
+  min-width: 320px;
 }
 
 .dock-col-label {
@@ -597,11 +607,12 @@ body {
   font-weight: bold;
   letter-spacing: 1px;
   color: var(--text-sub);
+  white-space: nowrap;
 }
 
 .dock-divider {
   width: 1px;
-  height: 80%;
+  height: 65px;
   background: var(--border-neon);
   flex-shrink: 0;
 }
@@ -615,14 +626,15 @@ body {
 .dock-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: rgba(0, 255, 65, 0.08);
   border: 1px solid var(--border-neon);
   color: var(--neon-green);
   font-family: var(--font-lisa);
   font-size: 10px;
-  font-weight: 600;
-  padding: 6px 10px;
+  font-weight: 700;
+  padding: 7px 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
@@ -632,22 +644,21 @@ body {
 .dock-btn:hover, .dock-btn.active {
   background: var(--neon-green);
   color: #000;
-  font-weight: bold;
   box-shadow: 0 0 12px rgba(0, 255, 65, 0.4);
 }
 
-/* Dock Sliders */
-.dock-slider-row {
+/* Dock Sliders Cluster */
+.dock-sliders-cluster {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .dock-slider-unit {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  min-width: 95px;
+  min-width: 105px;
 }
 
 .dock-slider-label {
@@ -700,7 +711,7 @@ body {
   font-size: 10px;
   color: var(--text-sub);
   cursor: pointer;
-  margin-left: 4px;
+  margin-left: 2px;
   white-space: nowrap;
 }
 
@@ -736,7 +747,6 @@ body {
 .dock-pill-scroll {
   display: flex;
   gap: 4px;
-  max-width: 380px;
   overflow-x: auto;
   padding-bottom: 2px;
 }
@@ -768,7 +778,7 @@ body {
 /* Palette Swatch Cards in Dock */
 .dock-palettes-scroll {
   display: grid;
-  grid-template-columns: repeat(5, 80px);
+  grid-template-columns: repeat(5, 82px);
   gap: 4px;
   max-height: 80px;
   overflow-y: auto;
@@ -817,15 +827,44 @@ body {
   font-weight: bold;
 }
 
+/* Theme buttons grid */
+.dock-theme-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dock-theme-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-neon);
+  color: var(--text-sub);
+  font-family: var(--font-lisa);
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.dock-theme-btn:hover, .dock-theme-btn.active {
+  background: rgba(0, 255, 65, 0.2);
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
 /* Export Buttons in Dock */
 .dock-export-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   font-family: var(--font-lisa);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 6px 12px;
+  padding: 7px 12px;
   border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
@@ -850,11 +889,11 @@ body {
 }
 
 .dock-export-btn.secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: var(--text-main);
   font-size: 9px;
-  padding: 4px 8px;
+  padding: 5px 8px;
 }
 
 .dock-export-btn.secondary:hover {
