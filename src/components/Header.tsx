@@ -3,7 +3,8 @@
 import React from 'react';
 import { AppMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
-import { Terminal, Tv, Volume2, VolumeX, Flame, Binary } from 'lucide-react';
+import Link from 'next/link';
+import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft } from 'lucide-react';
 
 interface HeaderProps {
   mode: AppMode;
@@ -44,6 +45,10 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="cyber-header">
       <div className="header-left">
+        <Link href="/" className="btn-utility flex items-center gap-1 text-xs px-2.5 py-1 text-neutral-300 hover:text-white border border-neutral-700/60 rounded-md bg-neutral-900/60 hover:bg-neutral-800/80 transition-colors">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Home</span>
+        </Link>
         <div className="brand-badge">
           <span className="brand-title">CYBER::STUDIO</span>
           <span className="brand-tag">v2.0 // NEURAL_PIXEL</span>
