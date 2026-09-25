@@ -1,4 +1,4 @@
-import { UpscaleMode } from './types';
+import { UpscaleMode } from '@/lib/types';
 
 // Maximum hardware-supported canvas dimension for 8K UHD output
 const MAX_SAFE_CANVAS_DIMENSION = 8192;

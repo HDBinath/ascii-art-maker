@@ -23,7 +23,6 @@ import {
   Sliders,
   Palette,
   Binary,
-  Maximize,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
