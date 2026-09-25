@@ -44,9 +44,9 @@ interface TrailPoint {
 export const LandingPoster: React.FC = () => {
   const router = useRouter();
   const [isAnim, setIsAnim] = useState<boolean>(true);
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [pillText, setPillText] = useState<string>('Launch Studio');
-  const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   const stageRef = useRef<HTMLElement | null>(null);
   const flowerRef = useRef<HTMLDivElement | null>(null);
@@ -66,21 +66,21 @@ export const LandingPoster: React.FC = () => {
   const timeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
 
-  // Scroll listener for floating header
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   // Remove .anim class after entrance choreography
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsAnim(false);
     }, 5500);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Track window scroll to reveal sticky top navigation
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 80);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Keyboard accessibility for mobile sheet
@@ -295,31 +295,36 @@ export const LandingPoster: React.FC = () => {
 
   return (
     <div className={`landing-page-root ${isAnim ? 'anim' : ''}`}>
-      {/* Floating Sticky Navigation Bar when scrolled */}
-      <header className={`landing-floating-nav ${isScrolled ? 'visible' : ''}`} aria-label="Quick navigation">
-        <Link href="#home" className="floating-brand">
-          <svg className="w-5 h-5" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* ====================================================================
+          STICKY TOP NAVIGATION BAR (Revealed when user scrolls down)
+          ==================================================================== */}
+      <header className={`sticky-landing-header ${isScrolled ? 'visible' : ''}`} aria-hidden={!isScrolled}>
+        <a href="#home" className="sticky-brand-group">
+          <svg className="sticky-asterisk" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
             <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
             <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
             <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
             <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
           </svg>
-          <span className="floating-brand-title">ORBIT</span>
-        </Link>
+          <div className="sticky-brand-title">
+            <span>OR</span>
+            <span className="sticky-brand-pink">BIT</span>
+          </div>
+        </a>
 
-        <nav className="floating-nav-links">
-          <Link href="#home">Home</Link>
-          <Link href="#resources">Engines</Link>
-          <Link href="#benefits">Palettes</Link>
-          <Link href="#contact">Studio</Link>
-        </nav>
+        <ul className="sticky-nav-links">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#resources">Resources</a></li>
+          <li><a href="#benefits">Benefits</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
 
         <button
           type="button"
-          className="floating-pill-cta"
+          className="sticky-launch-btn"
           onClick={handlePillClick}
         >
-          <span>{pillText}</span>
+          <span>Launch Studio</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </header>
@@ -348,16 +353,16 @@ export const LandingPoster: React.FC = () => {
           {/* Primary Desktop Nav */}
           <ul className="primary-nav" role="navigation" aria-label="Main Navigation">
             <li className="nav-item-home">
-              <Link href="#home">Home</Link>
+              <a href="#home">Home</a>
             </li>
             <li className="nav-item-resources">
-              <Link href="#resources">Resources</Link>
+              <a href="#resources">Resources</a>
             </li>
             <li className="nav-item-benefits">
-              <Link href="#benefits">Benefits</Link>
+              <a href="#benefits">Benefits</a>
             </li>
             <li className="nav-item-contact">
-              <Link href="#contact">Contact</Link>
+              <a href="#contact">Contact</a>
             </li>
           </ul>
 
@@ -420,7 +425,7 @@ export const LandingPoster: React.FC = () => {
           </p>
 
           {/* Scroll Prompt */}
-          <a href="#resources" className="hero-scroll-prompt" aria-label="Scroll down">
+          <a href="#resources" className="hero-scroll-prompt" aria-label="Scroll down to explore">
             <div className="scroll-mouse-icon">
               <div className="scroll-wheel-dot" />
             </div>
@@ -452,10 +457,10 @@ export const LandingPoster: React.FC = () => {
           {/* Mobile Navigation Sheet */}
           <div className={`mobile-sheet ${menuOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
             <nav className="mobile-nav-links">
-              <Link href="#home" onClick={() => setMenuOpen(false)}>Home</Link>
-              <Link href="#resources" onClick={() => setMenuOpen(false)}>Resources</Link>
-              <Link href="#benefits" onClick={() => setMenuOpen(false)}>Benefits</Link>
-              <Link href="#contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+              <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
+              <a href="#resources" onClick={() => setMenuOpen(false)}>Resources</a>
+              <a href="#benefits" onClick={() => setMenuOpen(false)}>Benefits</a>
+              <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
             </nav>
 
             <button
@@ -749,7 +754,7 @@ export const LandingPoster: React.FC = () => {
           <span>ORBIT STUDIO // NEURAL ASCII & DITHER MATRIX GENERATOR</span>
         </div>
         <div className="footer-links">
-          <Link href="#home">Back to Top ↑</Link>
+          <a href="#home">Back to Top ↑</a>
           <Link href="/studio">Open Studio</Link>
         </div>
       </footer>

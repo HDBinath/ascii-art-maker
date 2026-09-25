@@ -17,6 +17,7 @@
 html {
   scroll-behavior: smooth;
   background-color: var(--surface);
+  overflow-x: hidden;
 }
 
 .landing-page-root {
@@ -25,6 +26,7 @@ html {
   background-color: var(--surface);
   color: var(--ink);
   overflow-x: hidden;
+  position: relative;
   user-select: none;
   font-family: "Orbit Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -32,11 +34,113 @@ html {
 }
 
 /* ==========================================================================
+   Sticky Top Navigation (Revealed when scrolling down)
+   ========================================================================== */
+.sticky-landing-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(22, 22, 22, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 900;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: transform 0.3s var(--orb-reveal), opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.sticky-landing-header.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sticky-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.sticky-asterisk {
+  width: 22px;
+  height: 20px;
+}
+
+.sticky-brand-title {
+  font-family: "Orbit Display", "Times New Roman", Times, serif;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.sticky-brand-pink {
+  background: var(--gradient-pink);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sticky-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sticky-nav-links a {
+  color: #a3a3a3;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.sticky-nav-links a:hover {
+  color: #ffffff;
+}
+
+.sticky-launch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #161616;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sticky-launch-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 20px var(--neon-pink-glow);
+}
+
+/* ==========================================================================
    1. Hero Poster Section (#home)
    ========================================================================== */
 .hero-stage-wrapper {
   position: relative;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -298,22 +402,24 @@ html {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 10px;
   letter-spacing: 2px;
   text-decoration: none;
   z-index: 4;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
 }
 
 .hero-scroll-prompt:hover {
   color: #ffffff;
+  transform: translateX(-50%) translateY(2px);
 }
 
 .scroll-mouse-icon {
   width: 14px;
   height: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 10px;
   display: flex;
   justify-content: center;
@@ -338,10 +444,11 @@ html {
    2. Expanded Content Sections (Unified Orbit Design Language)
    ========================================================================== */
 .content-section {
+  scroll-margin-top: 80px;
   position: relative;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 120px 24px;
+  padding: 110px 24px;
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -685,6 +792,7 @@ html {
    6. Final CTA Section (#contact)
    ========================================================================== */
 .cta-section-wrapper {
+  scroll-margin-top: 80px;
   max-width: 1240px;
   margin: 0 auto;
   padding: 120px 24px;
@@ -929,6 +1037,10 @@ html {
     display: none;
   }
 
+  .sticky-nav-links {
+    display: none;
+  }
+
   .mobile-burger {
     display: flex;
   }
@@ -976,100 +1088,5 @@ html {
     flex-direction: column;
     gap: 16px;
     text-align: center;
-  }
-}
-
-/* ==========================================================================
-   9. Floating Sticky Header on Scroll
-   ========================================================================== */
-.landing-floating-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 62px;
-  background: rgba(22, 22, 22, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-12px);
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.landing-floating-nav.visible {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.floating-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: #ffffff;
-}
-
-.floating-brand-title {
-  font-family: "Orbit Display", "Times New Roman", Times, serif;
-  font-size: 19px;
-  font-weight: 400;
-  line-height: 1;
-}
-
-.floating-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.floating-nav-links a {
-  color: #a3a3a3;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 400;
-  transition: color 0.2s ease;
-}
-
-.floating-nav-links a:hover {
-  color: #ffffff;
-}
-
-.floating-pill-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #ffffff;
-  color: #161616;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 8px 18px;
-  border-radius: 999px;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-  transition: all 0.2s var(--orb-reveal);
-}
-
-.floating-pill-cta:hover {
-  background: #f0f0f0;
-  transform: scale(1.04);
-  box-shadow: 0 6px 20px rgba(253, 134, 219, 0.45);
-}
-
-@media (max-width: 768px) {
-  .floating-nav-links {
-    display: none;
   }
 }
