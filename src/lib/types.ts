@@ -35,6 +35,8 @@ export type PaletteName =
   | 'truecolor'
   | 'custom';
 
+export type UpscaleMode = 'smooth' | 'pixel' | 'edge';
+
 export interface AppOptions {
   mode: AppMode;
   // Common
@@ -42,8 +44,13 @@ export interface AppOptions {
   brightness: number; // 0.5 - 2.5
   invert: boolean;
   
+  // Upscaling & Resolution
+  upscaleFactor: number; // 1, 2, 4, 8
+  upscaleMode: UpscaleMode; // 'smooth' (Bicubic) | 'pixel' (Nearest) | 'edge' (Edge-enhanced)
+  exportScale: number; // 1x, 2x, 4x, 8x (HD / 4K / Print)
+  
   // ASCII Specific
-  columns: number; // 30 - 240
+  columns: number; // 30 - 300
   fontSize: number; // 6 - 28
   aspectRatio: number; // 0.35 - 0.75
   charset: CharsetName;
@@ -55,7 +62,7 @@ export interface AppOptions {
   palette: PaletteName;
   customPaletteColors: string[];
   pixelSize: number; // 1 - 32 (downsampling factor)
-  ditherAmount: number; // 0.0 - 1.0 (error diffusion strength)
+  ditherAmount: number; // 0.0 - 1.5 (error diffusion strength)
   colorDepthBits: number; // 1 - 8 bits per channel
   crtEffect: boolean;
   scanlines: boolean;

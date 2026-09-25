@@ -647,6 +647,42 @@ body {
   box-shadow: 0 0 12px rgba(0, 255, 65, 0.4);
 }
 
+/* Upscale & Export Multiplier Chips */
+.dock-upscale-chips {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dock-sub-label {
+  font-family: var(--font-lisa);
+  font-size: 8px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.dock-chip-btn {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-neon);
+  color: var(--text-sub);
+  font-family: var(--font-lisa);
+  font-size: 8px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.dock-chip-btn:hover, .dock-chip-btn.active {
+  background: rgba(0, 255, 65, 0.25);
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
 /* Dock Sliders Cluster */
 .dock-sliders-cluster {
   display: flex;

@@ -8,6 +8,7 @@ import { OriginalImagePiP } from '@/components/OriginalImagePiP';
 import { BottomControlDock } from '@/components/BottomControlDock';
 import { processAsciiArt, generateHtmlExport } from '@/lib/asciiEngine';
 import { processDitheredPixelArt } from '@/lib/ditherEngine';
+import { upscaleSourceCanvas } from '@/lib/upscaleHelper';
 import { soundFx } from '@/lib/soundFx';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -25,6 +26,9 @@ export default function Home() {
     contrast: 1.2,
     brightness: 1.0,
     invert: false,
+    upscaleFactor: 1,
+    upscaleMode: 'smooth',
+    exportScale: 1,
     columns: 110,
     fontSize: 12,
     aspectRatio: 0.55,
@@ -47,6 +51,7 @@ export default function Home() {
   }, [mode]);
 
   // Canvas & Media Refs
+  const rawSourceRef = useRef<HTMLImageElement | HTMLCanvasElement | null>(null);
   const sourceCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const targetCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -107,26 +112,45 @@ export default function Home() {
     }
   }, [options]);
 
-  // Re-run pipeline whenever options change
-  useEffect(() => {
-    if (sourceType === 'upload') {
+  // Handle Upscale update on raw source
+  const applyUpscaleToSource = useCallback(() => {
+    if (!rawSourceRef.current || !sourceCanvasRef.current) return;
+    const raw = rawSourceRef.current;
+    const upscaled = upscaleSourceCanvas(raw, options.upscaleFactor, options.upscaleMode);
+
+    const srcCanvas = sourceCanvasRef.current;
+    srcCanvas.width = upscaled.width;
+    srcCanvas.height = upscaled.height;
+    const ctx = srcCanvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(upscaled, 0, 0);
       renderPipeline();
     }
-  }, [options, renderPipeline, sourceType]);
+  }, [options.upscaleFactor, options.upscaleMode, renderPipeline]);
+
+  // Re-run pipeline or upscale whenever options change
+  useEffect(() => {
+    if (sourceType === 'upload') {
+      if (rawSourceRef.current) {
+        applyUpscaleToSource();
+      } else {
+        renderPipeline();
+      }
+    }
+  }, [options, applyUpscaleToSource, renderPipeline, sourceType]);
 
   // Load Image onto source canvas
   const handleImageLoaded = useCallback((img: HTMLImageElement | HTMLCanvasElement) => {
+    rawSourceRef.current = img;
     const srcCanvas = sourceCanvasRef.current;
     if (!srcCanvas) return;
 
-    const w = 'naturalWidth' in img ? img.naturalWidth : img.width;
-    const h = 'naturalHeight' in img ? img.naturalHeight : img.height;
-
-    srcCanvas.width = w;
-    srcCanvas.height = h;
+    const upscaled = upscaleSourceCanvas(img, options.upscaleFactor, options.upscaleMode);
+    srcCanvas.width = upscaled.width;
+    srcCanvas.height = upscaled.height;
     const ctx = srcCanvas.getContext('2d');
     if (ctx) {
-      ctx.drawImage(img, 0, 0, w, h);
+      ctx.drawImage(upscaled, 0, 0);
       if ('toDataURL' in img) {
         setPreviewUrl(img.toDataURL('image/png'));
       } else {
@@ -134,7 +158,7 @@ export default function Home() {
       }
       renderPipeline();
     }
-  }, [renderPipeline]);
+  }, [options.upscaleFactor, options.upscaleMode, renderPipeline]);
 
   // File Upload Handler
   const handleFileUpload = (file: File) => {
@@ -218,6 +242,7 @@ export default function Home() {
 
   // Clear Image
   const handleClearImage = () => {
+    rawSourceRef.current = null;
     setPreviewUrl(null);
     const srcCanvas = sourceCanvasRef.current;
     const tgtCanvas = targetCanvasRef.current;

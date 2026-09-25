@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { AppOptions, CharsetName, DitherAlgorithm, PaletteName } from '@/lib/types';
+import { AppOptions, CharsetName, DitherAlgorithm, PaletteName, UpscaleMode } from '@/lib/types';
 import { PRESET_PALETTES } from '@/lib/palettes';
 import { DENSITY_CHARSETS } from '@/lib/asciiEngine';
+import { generateHighResExportCanvas } from '@/lib/upscaleHelper';
 import { soundFx } from '@/lib/soundFx';
 import {
   UploadCloud,
@@ -22,6 +23,7 @@ import {
   Sliders,
   Palette,
   Binary,
+  Maximize,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -70,7 +72,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
   const triggerConfetti = () => {
     try {
       confetti({
-        particleCount: 40,
+        particleCount: 45,
         spread: 60,
         origin: { y: 0.85 },
         colors: ['#00ff41', '#00f0ff', '#ff71ce', '#ffe600'],
@@ -83,15 +85,18 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
     soundFx.playScan();
     triggerConfetti();
 
-    const dataUrl = canvasRef.current.toDataURL('image/png');
+    // Generate high-resolution export canvas scaled by options.exportScale
+    const exportCanvas = generateHighResExportCanvas(canvasRef.current, options.exportScale);
+    const dataUrl = exportCanvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.href = dataUrl;
-    link.download = `cyber_${options.mode}_${Date.now()}.png`;
+    const scaleLabel = options.exportScale > 1 ? `_${options.exportScale}x_HD` : '';
+    link.download = `cyber_${options.mode}${scaleLabel}_${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    onToast('High-Resolution PNG Downloaded!');
+    onToast(`PNG Downloaded (${options.exportScale}x Resolution: ${exportCanvas.width}×${exportCanvas.height}px)!`);
   };
 
   const handleDownloadTxt = () => {
@@ -158,9 +163,9 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
       />
 
       <div className="bottom-dock-container">
-        {/* 1. SOURCE SELECTOR */}
+        {/* 1. SOURCE & UPSCALE SELECTOR */}
         <div className="dock-column dock-source-col">
-          <span className="dock-col-label"><UploadCloud className="w-3.5 h-3.5 text-green-400" /> SOURCE INPUT</span>
+          <span className="dock-col-label"><UploadCloud className="w-3.5 h-3.5 text-green-400" /> SOURCE & UPSCALE</span>
           <div className="dock-button-stack">
             <button
               type="button"
@@ -188,6 +193,22 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
               <Camera className="w-4 h-4" />
               <span>{sourceType === 'webcam' ? 'STOP WEBCAM' : 'START WEBCAM'}</span>
             </button>
+          </div>
+
+          {/* Source Upscale Factor Chips */}
+          <div className="dock-upscale-chips mt-1">
+            <span className="dock-sub-label">INPUT SCALE:</span>
+            {[1, 2, 4, 8].map((factor) => (
+              <button
+                key={factor}
+                type="button"
+                className={`dock-chip-btn ${options.upscaleFactor === factor ? 'active' : ''}`}
+                onClick={() => handlePillClick('upscaleFactor', factor)}
+                title={`Upscale source image by ${factor}x before conversion`}
+              >
+                {factor}x
+              </button>
+            ))}
           </div>
         </div>
 
@@ -242,6 +263,27 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
               <span className="dock-checkbox-box" />
               <span>INVERT</span>
             </label>
+          </div>
+
+          {/* Upscale Resampling Mode */}
+          <div className="dock-upscale-chips mt-1">
+            <span className="dock-sub-label">UPSCALE MODE:</span>
+            {(
+              [
+                ['smooth', 'Bicubic (Photo)'],
+                ['pixel', 'Nearest (Pixel Art)'],
+                ['edge', 'Edge Sharpened'],
+              ] as [UpscaleMode, string][]
+            ).map(([uMode, label]) => (
+              <button
+                key={uMode}
+                type="button"
+                className={`dock-chip-btn ${options.upscaleMode === uMode ? 'active' : ''}`}
+                onClick={() => handlePillClick('upscaleMode', uMode)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -354,7 +396,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
                   <input
                     type="range"
                     min="30"
-                    max="240"
+                    max="300"
                     step="2"
                     value={options.columns}
                     onChange={(e) => updateOption('columns', parseInt(e.target.value))}
@@ -441,18 +483,18 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
         <div className="dock-divider" />
 
-        {/* 4. EXPORT HUB */}
+        {/* 4. EXPORT HUB & HIGH-RES SCALE */}
         <div className="dock-column dock-export-col">
-          <span className="dock-col-label"><Download className="w-3.5 h-3.5 text-green-400" /> EXPORT ACTIONS</span>
+          <span className="dock-col-label"><Download className="w-3.5 h-3.5 text-green-400" /> EXPORT & HIGH-RES</span>
           <div className="dock-button-stack">
             <button
               type="button"
               className="dock-export-btn primary"
               onClick={handleDownloadPng}
-              title="Download High-Res PNG Image"
+              title={`Download rendered image at ${options.exportScale}x High-Resolution PNG`}
             >
               <Download className="w-4 h-4" />
-              <span>DOWNLOAD PNG</span>
+              <span>DOWNLOAD PNG ({options.exportScale}x)</span>
             </button>
 
             {(options.mode === 'ascii' || options.mode === 'hybrid') && (
@@ -486,6 +528,27 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Export Scale Multiplier */}
+          <div className="dock-upscale-chips mt-1">
+            <span className="dock-sub-label">OUTPUT RES:</span>
+            {[
+              [1, '1x'],
+              [2, '2x HD'],
+              [4, '4x 4K'],
+              [8, '8x Max'],
+            ].map(([scale, label]) => (
+              <button
+                key={scale}
+                type="button"
+                className={`dock-chip-btn ${options.exportScale === scale ? 'active' : ''}`}
+                onClick={() => handlePillClick('exportScale', scale as number)}
+                title={`Export downloadable image at ${scale}x scale`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
