@@ -4,11 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#161616">
-  <title>Orbit — Secure system</title>
+  <title>Orbit — Neural ASCII & Dither Art Studio</title>
   <style>
     :root {
       --ink: #ffffff;
       --surface: #161616;
+      --surface-card: rgba(26, 26, 26, 0.75);
+      --surface-card-hover: rgba(34, 34, 34, 0.9);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-medium: rgba(255, 255, 255, 0.16);
+      --neon-pink: #fd86db;
+      --neon-pink-light: #ffc5dc;
+      --neon-pink-glow: rgba(253, 134, 219, 0.35);
+      --gradient-pink: linear-gradient(180deg, #ffc5dc 0%, #fd86db 100%);
       --orb-reveal: cubic-bezier(.16, 1, .3, 1);
       --orb-soft: cubic-bezier(.25, .8, .28, 1);
     }
@@ -19,11 +27,16 @@
       padding: 0;
     }
 
-    html, body {
+    html {
+      scroll-behavior: smooth;
+      background: var(--surface);
+    }
+
+    body {
       width: 100%;
-      height: 100%;
+      min-height: 100%;
       margin: 0;
-      overflow: hidden;
+      overflow-x: hidden;
       background: var(--surface);
       color: var(--ink);
       font-family: "Orbit Sans", Arial, Helvetica, sans-serif;
@@ -32,11 +45,13 @@
       user-select: none;
     }
 
-    .viewport {
-      position: fixed;
-      inset: 0;
-      background: #000000;
+    .hero-stage-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
       overflow: hidden;
+      background: var(--surface);
     }
 
     .stage {
@@ -92,7 +107,7 @@
     }
 
     .primary-nav a:hover {
-      opacity: 0.8;
+      opacity: 0.75;
     }
 
     .nav-home { left: 10.104167vw; }
@@ -181,7 +196,7 @@
     }
 
     .orbit-word__pink {
-      background: linear-gradient(180deg, #ffc5dc 0%, #fd86db 100%);
+      background: var(--gradient-pink);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -268,259 +283,390 @@
       transform-origin: left bottom;
     }
 
-    /* Mobile burger and sheet */
-    .mobile-burger {
-      display: none;
+    .hero-scroll-prompt {
       position: absolute;
-      top: 2.336449dvh;
-      right: 5vw;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: none;
-      cursor: pointer;
-      z-index: 12;
+      bottom: 3.8dvh;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
       align-items: center;
+      gap: 6px;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      z-index: 4;
+      transition: color 0.2s ease;
+    }
+
+    .hero-scroll-prompt:hover {
+      color: #ffffff;
+    }
+
+    .scroll-mouse-icon {
+      width: 14px;
+      height: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      display: flex;
       justify-content: center;
+      padding-top: 3px;
     }
 
-    .mobile-burger-lines {
-      width: 18px;
-      height: 14px;
+    .scroll-wheel-dot {
+      width: 2px;
+      height: 5px;
+      background: var(--neon-pink);
+      border-radius: 2px;
+      animation: scrollPulse 1.8s infinite;
+    }
+
+    @keyframes scrollPulse {
+      0% { transform: translateY(0); opacity: 1; }
+      80% { transform: translateY(6px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 0; }
+    }
+
+    /* Content Sections */
+    .content-section {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 120px 24px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--neon-pink);
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding: 4px 12px;
+      background: rgba(253, 134, 219, 0.08);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+    }
+
+    .section-header {
+      margin-bottom: 56px;
+    }
+
+    .section-title {
+      font-family: "Orbit Display", "Times New Roman", Times, serif;
+      font-size: clamp(32px, 4.5vw, 56px);
+      font-weight: 400;
+      line-height: 1.1;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    .section-title-gradient {
+      background: var(--gradient-pink);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-desc {
+      font-size: clamp(15px, 1.4vw, 18px);
+      color: #a3a3a3;
+      max-width: 680px;
+      line-height: 1.6;
+    }
+
+    .orbit-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .orbit-feature-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 32px 28px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      backdrop-filter: blur(16px);
+      transition: all 0.3s var(--orb-reveal);
     }
 
-    .mobile-burger-lines span {
-      display: block;
-      height: 2px;
+    .orbit-feature-card:hover {
+      background: var(--surface-card-hover);
+      border-color: rgba(253, 134, 219, 0.35);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 30px var(--neon-pink-glow);
+    }
+
+    .card-num {
+      font-size: 11px;
+      color: #666666;
+      letter-spacing: 1.5px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-family: "Orbit Display", "Times New Roman", Times, serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .card-text {
+      font-size: 14px;
+      color: #888888;
+      line-height: 1.55;
+      margin-bottom: 24px;
+    }
+
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .card-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: #cccccc;
+    }
+
+    .showcase-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .showcase-media-box {
+      position: relative;
+      background: #0d0d0d;
+      border: 1px solid var(--border-medium);
+      border-radius: 20px;
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+    }
+
+    .showcase-media-img {
       width: 100%;
-      background-color: #161616;
-      border-radius: 1px;
-      transition: transform 0.25s ease, opacity 0.25s ease;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
-    .mobile-burger.open .mobile-burger-lines span:nth-child(1) {
-      transform: translateY(6px) rotate(45deg);
-    }
-    .mobile-burger.open .mobile-burger-lines span:nth-child(2) {
-      opacity: 0;
-    }
-    .mobile-burger.open .mobile-burger-lines span:nth-child(3) {
-      transform: translateY(-6px) rotate(-45deg);
-    }
-
-    .mobile-scrim {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 9;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .mobile-scrim.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .mobile-sheet {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: min(85vw, 360px);
-      background: rgba(22, 22, 22, 0.95);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 80px 32px 40px;
+    .showcase-floating-hud {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      padding: 12px 18px;
+      background: rgba(22, 22, 22, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      backdrop-filter: blur(16px);
       display: flex;
-      flex-direction: column;
+      align-items: center;
       justify-content: space-between;
-      z-index: 10;
-      transform: translateX(100%);
-      transition: transform 0.35s var(--orb-reveal);
     }
 
-    .mobile-sheet.open {
-      transform: translateX(0);
-    }
-
-    .mobile-nav-links {
+    .showcase-content-details {
       display: flex;
       flex-direction: column;
+      gap: 20px;
+    }
+
+    .showcase-item {
+      padding: 18px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .showcase-item-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .showcase-item-desc {
+      font-size: 13px;
+      color: #888888;
+      line-height: 1.5;
+    }
+
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
     }
 
-    .mobile-nav-links a {
+    .workflow-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .workflow-card-step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #161616;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .workflow-card-title {
+      font-family: "Orbit Display", "Times New Roman", Times, serif;
+      font-size: 20px;
       color: #ffffff;
-      font-size: 24px;
-      text-decoration: none;
       font-weight: 400;
     }
 
-    .mobile-pill {
+    .workflow-card-text {
+      font-size: 13px;
+      color: #888888;
+      line-height: 1.55;
+    }
+
+    .tech-matrix-box {
+      background: linear-gradient(180deg, rgba(30, 30, 30, 0.6) 0%, rgba(20, 20, 20, 0.9) 100%);
+      border: 1px solid var(--border-medium);
+      border-radius: 20px;
+      padding: 48px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 32px;
+    }
+
+    .tech-stat-value {
+      font-family: "Orbit Display", "Times New Roman", Times, serif;
+      font-size: 38px;
+      background: var(--gradient-pink);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .tech-stat-label {
+      font-size: 14px;
+      color: #ffffff;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .tech-stat-sub {
+      font-size: 12px;
+      color: #777777;
+      line-height: 1.4;
+    }
+
+    .cta-section-wrapper {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 120px 24px;
+      text-align: center;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 16px;
+      gap: 28px;
+    }
+
+    .cta-heading {
+      font-family: "Orbit Display", "Times New Roman", Times, serif;
+      font-size: clamp(36px, 5.5vw, 72px);
+      line-height: 1.05;
+      color: #ffffff;
+      font-weight: 400;
+      max-width: 840px;
+    }
+
+    .btn-cta-launch {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 42px;
       background: #ffffff;
       color: #161616;
       border-radius: 999px;
-      text-decoration: none;
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 600;
-      border: none;
-      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 24px var(--neon-pink-glow);
+      transition: all 0.25s var(--orb-reveal);
     }
 
-    /* Entrance Animation Keyframes */
-    @keyframes orb-word {
-      0% { transform: translateY(118%); }
-      100% { transform: translateY(0%); }
+    .btn-cta-launch:hover {
+      background: #f0f0f0;
+      transform: scale(1.05);
+      box-shadow: 0 10px 40px rgba(253, 134, 219, 0.55);
     }
 
-    @keyframes orb-subject {
-      0% { opacity: 0; transform: translateX(-50%) translateY(3.4dvh); }
-      100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .orbit-footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 40px 24px 60px;
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #666666;
+      font-size: 12px;
     }
 
-    @keyframes orb-corner {
-      0% { opacity: 0; transform: translateY(1.8dvh); }
-      100% { opacity: 1; transform: translateY(0); }
+    .footer-links a {
+      color: #888888;
+      text-decoration: none;
+      margin-left: 20px;
     }
 
-    @keyframes orb-quiet {
-      0% { opacity: 0; transform: translateY(1.2dvh); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
+    /* Keyframes */
+    @keyframes orb-word { 0% { transform: translateY(118%); } 100% { transform: translateY(0%); } }
+    @keyframes orb-subject { 0% { opacity: 0; transform: translateX(-50%) translateY(3.4dvh); } 100% { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    @keyframes orb-corner { 0% { opacity: 0; transform: translateY(1.8dvh); } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes orb-quiet { 0% { opacity: 0; transform: translateY(1.2dvh); } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes orb-dim { 0% { opacity: 0; } 100% { opacity: 1; } }
 
-    @keyframes orb-dim {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
-    }
+    html.anim .brand-mark { opacity: 0; animation: orb-quiet 620ms var(--orb-soft) 100ms forwards; }
+    html.anim .nav-home a { opacity: 0; animation: orb-dim 550ms var(--orb-soft) 180ms forwards; }
+    html.anim .nav-resources a { opacity: 0; animation: orb-dim 550ms var(--orb-soft) 225ms forwards; }
+    html.anim .nav-benefits a { opacity: 0; animation: orb-dim 550ms var(--orb-soft) 270ms forwards; }
+    html.anim .nav-contact a { opacity: 0; animation: orb-dim 550ms var(--orb-soft) 315ms forwards; }
+    html.anim .secure-pill { opacity: 0; animation: orb-quiet 620ms var(--orb-soft) 340ms forwards; }
+    html.anim .orbit-word__inner { transform: translateY(118%); animation: orb-word 1150ms var(--orb-reveal) 300ms forwards; }
+    html.anim .flower { opacity: 0; animation: orb-subject 1150ms var(--orb-reveal) 660ms forwards; }
+    html.anim .support-copy--left { opacity: 0; animation: orb-corner 720ms var(--orb-soft) 980ms forwards; }
+    html.anim .support-copy--right { opacity: 0; animation: orb-corner 720ms var(--orb-soft) 980ms forwards; }
 
-    html.anim .brand-mark {
-      opacity: 0;
-      animation: orb-quiet 620ms var(--orb-soft) 100ms forwards;
-    }
-
-    html.anim .nav-home a {
-      opacity: 0;
-      animation: orb-dim 550ms var(--orb-soft) 180ms forwards;
-    }
-
-    html.anim .nav-resources a {
-      opacity: 0;
-      animation: orb-dim 550ms var(--orb-soft) 225ms forwards;
-    }
-
-    html.anim .nav-benefits a {
-      opacity: 0;
-      animation: orb-dim 550ms var(--orb-soft) 270ms forwards;
-    }
-
-    html.anim .nav-contact a {
-      opacity: 0;
-      animation: orb-dim 550ms var(--orb-soft) 315ms forwards;
-    }
-
-    html.anim .secure-pill {
-      opacity: 0;
-      animation: orb-quiet 620ms var(--orb-soft) 340ms forwards;
-    }
-
-    html.anim .orbit-word__inner {
-      transform: translateY(118%);
-      animation: orb-word 1150ms var(--orb-reveal) 300ms forwards;
-    }
-
-    html.anim .flower {
-      opacity: 0;
-      animation: orb-subject 1150ms var(--orb-reveal) 660ms forwards;
-    }
-
-    html.anim .support-copy--left {
-      opacity: 0;
-      animation: orb-corner 720ms var(--orb-soft) 980ms forwards;
-    }
-
-    html.anim .support-copy--right {
-      opacity: 0;
-      animation: orb-corner 720ms var(--orb-soft) 980ms forwards;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html.anim .brand-mark,
-      html.anim .primary-nav a,
-      html.anim .secure-pill,
-      html.anim .orbit-word__inner,
-      html.anim .flower,
-      html.anim .support-copy {
-        animation: orb-dim 280ms ease forwards !important;
-        transform: none !important;
-      }
-    }
-
-    @media (max-width: 1200px) {
-      .orbit-word {
-        left: 0;
-        width: 100%;
-        text-align: center;
-      }
-    }
-
-    @media (max-width: 900px), (max-aspect-ratio: 4/5) {
-      .primary-nav,
-      .secure-pill {
-        display: none;
-      }
-
-      .mobile-burger {
-        display: flex;
-      }
-
-      .flower {
-        height: min(55dvh, 110vw);
-        top: 25dvh;
-      }
-
-      .orbit-word {
-        font-size: min(27.5vw, 18dvh);
-        top: 15dvh;
-        left: 0;
-        width: 100%;
-        text-align: center;
-      }
-
-      .support-copy--left {
-        left: 6vw;
-        bottom: 6dvh;
-        max-width: 42vw;
-      }
-
-      .support-copy--right {
-        left: auto;
-        right: 6vw;
-        bottom: 6dvh;
-        max-width: 42vw;
-        text-align: right;
-      }
-      
-      .support-copy--right .support-copy__inner {
-        transform-origin: right bottom;
-      }
+    @media (max-width: 900px) {
+      .primary-nav, .secure-pill { display: none; }
+      .showcase-container, .workflow-grid { grid-template-columns: 1fr; }
+      .orbit-footer { flex-direction: column; gap: 16px; text-align: center; }
     }
   </style>
 </head>
 <body>
-  <main class="viewport">
+  <!-- 1. HERO POSTER -->
+  <div class="hero-stage-wrapper" id="home">
     <section class="stage" id="stage">
-      <!-- Brand mark -->
       <div class="brand-mark">
         <svg viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" stroke-width="5" stroke-linecap="square" />
@@ -530,7 +676,6 @@
         </svg>
       </div>
 
-      <!-- Primary nav -->
       <ul class="primary-nav">
         <li class="nav-home"><a href="#home">Home</a></li>
         <li class="nav-resources"><a href="#resources">Resources</a></li>
@@ -538,12 +683,10 @@
         <li class="nav-contact"><a href="#contact">Contact</a></li>
       </ul>
 
-      <!-- Secure system pill button linking to studio -->
       <a href="./studio" class="secure-pill" id="secure-pill">
         <span>Launch Studio</span>
       </a>
 
-      <!-- Wordmark ORBIT -->
       <h1 class="orbit-word" id="orbit-title" aria-label="Orbit">
         <span class="orbit-word__mask">
           <span class="orbit-word__inner">
@@ -553,7 +696,6 @@
         </span>
       </h1>
 
-      <!-- Flower stack -->
       <div class="flower" id="flower">
         <img class="flower__sizer" src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260808_192942_e1086505-d7da-433b-a59b-8220f4e6c808.png&w=1280&q=85" alt="" aria-hidden="true">
         <div class="flower__layer flower__layer--bg" id="flower-bg">
@@ -564,7 +706,6 @@
         </div>
       </div>
 
-      <!-- Corner copy -->
       <p class="support-copy support-copy--left">
         <span class="support-copy__inner">
           Every workflow,<br>intelligently connected.
@@ -577,61 +718,171 @@
         </span>
       </p>
 
-      <!-- Mobile menu -->
-      <button class="mobile-burger" id="burger-btn" aria-label="Toggle menu">
-        <div class="mobile-burger-lines">
-          <span></span>
-          <span></span>
-          <span></span>
+      <a href="#resources" class="hero-scroll-prompt">
+        <div class="scroll-mouse-icon">
+          <div class="scroll-wheel-dot"></div>
         </div>
-      </button>
-
-      <div class="mobile-scrim" id="mobile-scrim"></div>
-
-      <div class="mobile-sheet" id="mobile-sheet">
-        <nav class="mobile-nav-links">
-          <a href="#home">Home</a>
-          <a href="#resources">Resources</a>
-          <a href="#benefits">Benefits</a>
-          <a href="#contact">Contact</a>
-        </nav>
-        <a href="./studio" class="mobile-pill">Launch Studio</a>
-      </div>
+        <span>EXPLORE</span>
+      </a>
     </section>
-  </main>
+  </div>
+
+  <!-- 2. RESOURCES SECTION -->
+  <section class="content-section" id="resources">
+    <div class="section-header">
+      <span class="section-tag">01 // ALGORITHMIC ENGINES</span>
+      <h2 class="section-title">
+        Computational Artistry <span class="section-title-gradient">Engineered at Scale</span>
+      </h2>
+      <p class="section-desc">
+        Convert any photograph, graphic, or live camera feed into retro-futuristic ASCII typography and mathematical error-diffused dithered matrices in real-time.
+      </p>
+    </div>
+
+    <div class="orbit-grid-4">
+      <div class="orbit-feature-card">
+        <div>
+          <div class="card-num">MODE // 01</div>
+          <h3 class="card-title">Neural ASCII Matrix</h3>
+          <p class="card-text">
+            Sub-pixel brightness mapping across 8 distinct density character sets (Cyberpunk, Matrix, Braille, Binary, and Classic block ramps) with font aspect ratio compensation.
+          </p>
+        </div>
+        <div class="card-badges">
+          <span class="card-badge">8 Charsets</span>
+          <span class="card-badge">Aspect Sync</span>
+        </div>
+      </div>
+
+      <div class="orbit-feature-card">
+        <div>
+          <div class="card-num">MODE // 02</div>
+          <h3 class="card-title">Dither Matrix Lab</h3>
+          <p class="card-text">
+            9 hardware-accelerated dithering algorithms including Floyd-Steinberg, Atkinson, Bayer 4×4/8×8 ordered patterns, Sierra Lite, Burkes, and Halftone frequency screening.
+          </p>
+        </div>
+        <div class="card-badges">
+          <span class="card-badge">9 Algorithms</span>
+          <span class="card-badge">Error Diffusion</span>
+        </div>
+      </div>
+
+      <div class="orbit-feature-card">
+        <div>
+          <div class="card-num">MODE // 03</div>
+          <h3 class="card-title">Live Camera Stream</h3>
+          <p class="card-text">
+            Zero-latency 60 FPS webcam ingestion. Turn your live camera into a real-time ASCII hologram or 1-bit Macintosh phosphor viewfinder with live horizontal flipping.
+          </p>
+        </div>
+        <div class="card-badges">
+          <span class="card-badge">60 FPS Realtime</span>
+          <span class="card-badge">Mirror Mode</span>
+        </div>
+      </div>
+
+      <div class="orbit-feature-card">
+        <div>
+          <div class="card-num">MODE // 04</div>
+          <h3 class="card-title">8K UHD Master Export</h3>
+          <p class="card-text">
+            Asynchronous binary streaming generates uncompressed 4K and 8K print-ready PNG posters without memory corruption, plus pure ANSI text and CSS-styled web pages.
+          </p>
+        </div>
+        <div class="card-badges">
+          <span class="card-badge">Up to 8192px</span>
+          <span class="card-badge">Lossless PNG</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. BENEFITS SECTION -->
+  <section class="content-section" id="benefits">
+    <div class="section-header">
+      <span class="section-tag">02 // RETRO PALETTES & PHOSPHORS</span>
+      <h2 class="section-title">
+        Curated Color Systems <span class="section-title-gradient">from Vintage Eras</span>
+      </h2>
+      <p class="section-desc">
+        Quantize full-color imagery against 10 legendary hardware palettes, from Game Boy 4-shade green to Commodore 64 and Synthwave cyber aesthetics.
+      </p>
+    </div>
+
+    <div class="showcase-container">
+      <div class="showcase-media-box">
+        <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260808_192942_e1086505-d7da-433b-a59b-8220f4e6c808.png&w=1280&q=85" alt="" class="showcase-media-img">
+      </div>
+
+      <div class="showcase-content-details">
+        <div class="showcase-item">
+          <h4 class="showcase-item-title">10 Curated Vintage Palettes</h4>
+          <p class="showcase-item-desc">Game Boy DMG, Commodore 64, PICO-8, Macintosh 1-bit, Cyberpunk Neon, Amber Phosphor, CGA Mode 1, and True Color quantization.</p>
+        </div>
+        <div class="showcase-item">
+          <h4 class="showcase-item-title">Dynamic Contrast & Gain Calibration</h4>
+          <p class="showcase-item-desc">Tune luminance curves, brightness thresholds, negative inversion, and error diffusion strength in real-time before rasterization.</p>
+        </div>
+        <div class="showcase-item">
+          <h4 class="showcase-item-title">Authentic CRT Phosphor Glow & Scanlines</h4>
+          <p class="showcase-item-desc">Simulate vintage cathode-ray tube raster lines, ambient bloom, and Web Audio synthesized keyboard SFX for deep tactile immersion.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. WORKFLOW SECTION -->
+  <section class="content-section">
+    <div class="section-header">
+      <span class="section-tag">03 // CREATIVE WORKFLOW</span>
+      <h2 class="section-title">
+        From Raw Pixels to <span class="section-title-gradient">Master Art in Seconds</span>
+      </h2>
+    </div>
+
+    <div class="workflow-grid">
+      <div class="workflow-card">
+        <div class="workflow-card-step">1</div>
+        <h3 class="workflow-card-title">Ingest Any Source</h3>
+        <p class="workflow-card-text">Drag and drop any high or low resolution image file (PNG, JPG, WEBP, SVG) or click to initiate your live webcam feed directly.</p>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-card-step">2</div>
+        <h3 class="workflow-card-title">Modulate & Upscale</h3>
+        <p class="workflow-card-text">Switch between ASCII, Dithered Pixels, and Hybrid modes. Apply 2x, 4x, or 8x nearest-neighbor or smooth bicubic upscaling.</p>
+      </div>
+      <div class="workflow-card">
+        <div class="workflow-card-step">3</div>
+        <h3 class="workflow-card-title">Export Lossless Masters</h3>
+        <p class="workflow-card-text">Instantly download uncompressed 4K or 8K UHD PNG files, copy formatted plain text ASCII, or export responsive HTML code.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. CTA SECTION -->
+  <div class="cta-section-wrapper" id="contact">
+    <h2 class="cta-heading">
+      Create Art from <span class="section-title-gradient">Pixels & Typography</span>
+    </h2>
+    <a href="./studio" class="btn-cta-launch">
+      <span>Launch Studio Now</span>
+      <span>→</span>
+    </a>
+  </div>
+
+  <footer class="orbit-footer">
+    <span>ORBIT STUDIO // NEURAL ASCII & DITHER MATRIX GENERATOR</span>
+    <div class="footer-links">
+      <a href="#home">Back to Top ↑</a>
+      <a href="./studio">Open Studio</a>
+    </div>
+  </footer>
 
   <script>
     (function() {
-      // 1. Remove .anim class after entrance choreography
-      setTimeout(function() {
-        document.documentElement.classList.remove('anim');
-      }, 5500);
+      setTimeout(function() { document.documentElement.classList.remove('anim'); }, 5500);
 
-      // 2. Mobile Menu
-      var burger = document.getElementById('burger-btn');
-      var scrim = document.getElementById('mobile-scrim');
-      var sheet = document.getElementById('mobile-sheet');
-
-      function toggleMenu(open) {
-        var isOpen = typeof open === 'boolean' ? open : !sheet.classList.contains('open');
-        burger.classList.toggle('open', isOpen);
-        scrim.classList.toggle('open', isOpen);
-        sheet.classList.toggle('open', isOpen);
-      }
-
-      if (burger && scrim && sheet) {
-        burger.addEventListener('click', function() { toggleMenu(); });
-        scrim.addEventListener('click', function() { toggleMenu(false); });
-        var links = sheet.querySelectorAll('a');
-        for (var i = 0; i < links.length; i++) {
-          links[i].addEventListener('click', function() { toggleMenu(false); });
-        }
-        window.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape') toggleMenu(false);
-        });
-      }
-
-      // 3. Mouse Morph-Reveal Trail Engine
       var stage = document.getElementById('stage');
       var flower = document.getElementById('flower');
       var bgLayer = document.getElementById('flower-bg');
@@ -640,11 +891,11 @@
       var bgCanvas = document.createElement('canvas');
       var topCanvas = document.createElement('canvas');
 
-      var TRAIL_MAX_POINTS  = 60;
-      var TRAIL_HEAD_R      = 140;
-      var TRAIL_NOISE_AMP   = 44;
-      var TRAIL_BLOB_PTS    = 24;
-      var TRAIL_FADE_SPEED  = 0.92;
+      var TRAIL_MAX_POINTS = 60;
+      var TRAIL_HEAD_R = 140;
+      var TRAIL_NOISE_AMP = 44;
+      var TRAIL_BLOB_PTS = 24;
+      var TRAIL_FADE_SPEED = 0.92;
       var TRAIL_SAMPLE_DIST = 8;
 
       var hovering = false;
@@ -655,47 +906,28 @@
       var points = [];
       var time = 0;
 
-      stage.addEventListener('mousemove', function(e) {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        hovering = true;
-      });
-
-      stage.addEventListener('mouseenter', function(e) {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        hovering = true;
-      });
-
-      stage.addEventListener('mouseleave', function() {
-        hovering = false;
-        lastSample = null;
-      });
+      stage.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; hovering = true; });
+      stage.addEventListener('mouseenter', function(e) { mouseX = e.clientX; mouseY = e.clientY; hovering = true; });
+      stage.addEventListener('mouseleave', function() { hovering = false; lastSample = null; });
 
       function drawMorphBlob(ctx, cx, cy, r, t, seed) {
         if (r < 2) return;
         var pts = [];
-        var num = TRAIL_BLOB_PTS;
-        for (var i = 0; i < num; i++) {
-          var angle = (i / num) * Math.PI * 2;
+        for (var i = 0; i < TRAIL_BLOB_PTS; i++) {
+          var angle = (i / TRAIL_BLOB_PTS) * Math.PI * 2;
           var n1 = Math.sin(angle * 3 + t * 1.4 + seed) * 0.45;
           var n2 = Math.sin(angle * 5 - t * 0.9 + seed * 2.3) * 0.3;
           var n3 = Math.cos(angle * 2 + t * 1.8 + seed * 0.7) * 0.25;
           var noise = (n1 + n2 + n3) * TRAIL_NOISE_AMP * (r / 140);
           var rad = Math.max(0, r + noise);
-          pts.push({
-            x: cx + Math.cos(angle) * rad,
-            y: cy + Math.sin(angle) * rad
-          });
+          pts.push({ x: cx + Math.cos(angle) * rad, y: cy + Math.sin(angle) * rad });
         }
 
         ctx.beginPath();
         ctx.moveTo((pts[0].x + pts[pts.length - 1].x) / 2, (pts[0].y + pts[pts.length - 1].y) / 2);
         for (var j = 0; j < pts.length; j++) {
           var next = pts[(j + 1) % pts.length];
-          var midX = (pts[j].x + next.x) / 2;
-          var midY = (pts[j].y + next.y) / 2;
-          ctx.quadraticCurveTo(pts[j].x, pts[j].y, midX, midY);
+          ctx.quadraticCurveTo(pts[j].x, pts[j].y, (pts[j].x + next.x) / 2, (pts[j].y + next.y) / 2);
         }
         ctx.closePath();
         ctx.fill();
@@ -707,14 +939,8 @@
           var w = Math.max(1, Math.floor(rect.width));
           var h = Math.max(1, Math.floor(rect.height));
 
-          if (bgCanvas.width !== w || bgCanvas.height !== h) {
-            bgCanvas.width = w;
-            bgCanvas.height = h;
-          }
-          if (topCanvas.width !== w || topCanvas.height !== h) {
-            topCanvas.width = w;
-            topCanvas.height = h;
-          }
+          if (bgCanvas.width !== w || bgCanvas.height !== h) { bgCanvas.width = w; bgCanvas.height = h; }
+          if (topCanvas.width !== w || topCanvas.height !== h) { topCanvas.width = w; topCanvas.height = h; }
 
           var targetR = hovering ? TRAIL_HEAD_R : 0;
           headRadius += (targetR - headRadius) * (hovering ? 0.14 : 0.04);
@@ -722,40 +948,21 @@
           if (hovering && headRadius > 5) {
             var mx = mouseX - rect.left;
             var my = mouseY - rect.top;
-
             var push = false;
-            if (!lastSample) {
-              push = true;
-            } else {
-              var dx = mx - lastSample.x;
-              var dy = my - lastSample.y;
-              if (Math.hypot(dx, dy) >= TRAIL_SAMPLE_DIST) {
-                push = true;
-              }
+            if (!lastSample) { push = true; } else {
+              if (Math.hypot(mx - lastSample.x, my - lastSample.y) >= TRAIL_SAMPLE_DIST) push = true;
             }
-
             if (push) {
-              points.push({
-                x: mx,
-                y: my,
-                r: headRadius,
-                alpha: 1.0,
-                seed: Math.random() * 100
-              });
-              if (points.length > TRAIL_MAX_POINTS) {
-                points.shift();
-              }
+              points.push({ x: mx, y: my, r: headRadius, alpha: 1.0, seed: Math.random() * 100 });
+              if (points.length > TRAIL_MAX_POINTS) points.shift();
               lastSample = { x: mx, y: my };
             }
           }
 
           for (var k = points.length - 1; k >= 0; k--) {
-            var p = points[k];
-            p.alpha *= TRAIL_FADE_SPEED;
-            p.r *= 0.995;
-            if (p.alpha < 0.01 || p.r < 2) {
-              points.splice(k, 1);
-            }
+            points[k].alpha *= TRAIL_FADE_SPEED;
+            points[k].r *= 0.995;
+            if (points[k].alpha < 0.01 || points[k].r < 2) points.splice(k, 1);
           }
 
           time += 0.016;
@@ -770,30 +977,24 @@
               bgLayer.style.maskImage = 'none';
               bgLayer.style.webkitMaskImage = 'none';
             } else {
-              // BG Mask
               bgCtx.globalCompositeOperation = 'source-over';
               bgCtx.fillStyle = '#ffffff';
               bgCtx.fillRect(0, 0, w, h);
-
               bgCtx.globalCompositeOperation = 'destination-out';
               for (var b = 0; b < points.length; b++) {
-                var pb = points[b];
-                bgCtx.fillStyle = 'rgba(255, 255, 255, ' + pb.alpha + ')';
-                drawMorphBlob(bgCtx, pb.x, pb.y, pb.r, time, pb.seed);
+                bgCtx.fillStyle = 'rgba(255, 255, 255, ' + points[b].alpha + ')';
+                drawMorphBlob(bgCtx, points[b].x, points[b].y, points[b].r, time, points[b].seed);
               }
 
-              // Top Mask
               topCtx.clearRect(0, 0, w, h);
               topCtx.globalCompositeOperation = 'source-over';
               for (var tIdx = 0; tIdx < points.length; tIdx++) {
-                var pt = points[tIdx];
-                topCtx.fillStyle = 'rgba(255, 255, 255, ' + pt.alpha + ')';
-                drawMorphBlob(topCtx, pt.x, pt.y, pt.r, time, pt.seed);
+                topCtx.fillStyle = 'rgba(255, 255, 255, ' + points[tIdx].alpha + ')';
+                drawMorphBlob(topCtx, points[tIdx].x, points[tIdx].y, points[tIdx].r, time, points[tIdx].seed);
               }
 
               var bgUrl = bgCanvas.toDataURL('image/png');
               var topUrl = topCanvas.toDataURL('image/png');
-
               bgLayer.style.maskImage = 'url(' + bgUrl + ')';
               bgLayer.style.webkitMaskImage = 'url(' + bgUrl + ')';
               topLayer.style.maskImage = 'url(' + topUrl + ')';
@@ -803,7 +1004,6 @@
         }
         requestAnimationFrame(loop);
       }
-
       requestAnimationFrame(loop);
     })();
   </script>

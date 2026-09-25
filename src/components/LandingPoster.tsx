@@ -3,6 +3,20 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  Terminal,
+  Flame,
+  Camera,
+  Layers,
+  Sparkles,
+  Cpu,
+  ShieldCheck,
+  ArrowRight,
+  Sliders,
+  Palette,
+  Binary,
+  Download,
+} from 'lucide-react';
 import './landingPoster.css';
 
 const FRONT_LILY_URL =
@@ -270,141 +284,436 @@ export const LandingPoster: React.FC = () => {
   };
 
   return (
-    <main className={`landing-viewport ${isAnim ? 'anim' : ''}`}>
-      <section
-        ref={stageRef}
-        className="stage"
-        onMouseMove={handleMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        {/* Brand Mark (Asterisk SVG) */}
-        <div className="brand-mark" aria-label="Orbit Brand">
-          <svg viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div className={`landing-page-root ${isAnim ? 'anim' : ''}`}>
+      {/* ====================================================================
+          1. HERO POSTER SECTION (#home)
+          ==================================================================== */}
+      <div className="hero-stage-wrapper" id="home">
+        <section
+          ref={stageRef}
+          className="stage"
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          {/* Brand Mark (Asterisk SVG) */}
+          <div className="brand-mark" aria-label="Orbit Brand">
+            <svg viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+              <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+              <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+              <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+            </svg>
+          </div>
+
+          {/* Primary Desktop Nav */}
+          <ul className="primary-nav" role="navigation" aria-label="Main Navigation">
+            <li className="nav-item-home">
+              <Link href="#home">Home</Link>
+            </li>
+            <li className="nav-item-resources">
+              <Link href="#resources">Resources</Link>
+            </li>
+            <li className="nav-item-benefits">
+              <Link href="#benefits">Benefits</Link>
+            </li>
+            <li className="nav-item-contact">
+              <Link href="#contact">Contact</Link>
+            </li>
+          </ul>
+
+          {/* Action Pill Button (Directs to Studio) */}
+          <button
+            type="button"
+            className="secure-pill"
+            onClick={handlePillClick}
+            aria-label="Direct to Studio"
+          >
+            <span>{pillText}</span>
+          </button>
+
+          {/* Wordmark ORBIT */}
+          <h1 className="orbit-word" id="orbit-title" aria-label="Orbit">
+            <span className="orbit-word__mask">
+              <span className="orbit-word__inner">
+                <span className="orbit-word__white">
+                  <span className="orbit-word__o">O</span>R
+                </span>
+                <span className="orbit-word__pink">BIT</span>
+              </span>
+            </span>
+          </h1>
+
+          {/* Flower Stack (Front & Reveal with dynamic morph-trail masks) */}
+          <div className="flower" ref={flowerRef}>
+            <img
+              className="flower__sizer"
+              src={FRONT_LILY_URL}
+              alt=""
+              aria-hidden="true"
+            />
+            <div className="flower__layer flower__layer--bg" ref={bgLayerRef}>
+              <img
+                src={FRONT_LILY_URL}
+                alt="Pixel-art pink and violet lily"
+              />
+            </div>
+            <div className="flower__layer flower__layer--top" ref={topLayerRef} aria-hidden="true">
+              <img
+                src={REVEAL_LILY_URL}
+                alt=""
+              />
+            </div>
+          </div>
+
+          {/* Left Corner Copy */}
+          <p className="support-copy support-copy--left">
+            <span className="support-copy__inner">
+              Every workflow,<br />intelligently connected.
+            </span>
+          </p>
+
+          {/* Right Corner Copy */}
+          <p className="support-copy support-copy--right">
+            <span className="support-copy__inner">
+              Less manual work.<br />More meaningful output.
+            </span>
+          </p>
+
+          {/* Scroll Prompt */}
+          <a href="#resources" className="hero-scroll-prompt" aria-label="Scroll down">
+            <div className="scroll-mouse-icon">
+              <div className="scroll-wheel-dot" />
+            </div>
+            <span>EXPLORE</span>
+          </a>
+
+          {/* Mobile Burger Button */}
+          <button
+            type="button"
+            className={`mobile-burger ${menuOpen ? 'open' : ''}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={menuOpen}
+          >
+            <div className="mobile-burger-lines">
+              <span />
+              <span />
+              <span />
+            </div>
+          </button>
+
+          {/* Mobile Backdrop Scrim */}
+          <div
+            className={`mobile-scrim ${menuOpen ? 'open' : ''}`}
+            onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Mobile Navigation Sheet */}
+          <div className={`mobile-sheet ${menuOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
+            <nav className="mobile-nav-links">
+              <Link href="#home" onClick={() => setMenuOpen(false)}>Home</Link>
+              <Link href="#resources" onClick={() => setMenuOpen(false)}>Resources</Link>
+              <Link href="#benefits" onClick={() => setMenuOpen(false)}>Benefits</Link>
+              <Link href="#contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+            </nav>
+
+            <button
+              type="button"
+              className="mobile-pill"
+              onClick={(e) => {
+                setMenuOpen(false);
+                handlePillClick(e);
+              }}
+            >
+              {pillText}
+            </button>
+          </div>
+        </section>
+      </div>
+
+      {/* ====================================================================
+          2. CORE ENGINES & CAPABILITIES (#resources)
+          ==================================================================== */}
+      <section className="content-section" id="resources">
+        <div className="section-header">
+          <span className="section-tag">01 // ALGORITHMIC ENGINES</span>
+          <h2 className="section-title">
+            Computational Artistry <span className="section-title-gradient">Engineered at Scale</span>
+          </h2>
+          <p className="section-desc">
+            Convert any photograph, graphic, or live camera feed into retro-futuristic ASCII typography and mathematical error-diffused dithered matrices in real-time.
+          </p>
+        </div>
+
+        <div className="orbit-grid-4">
+          {/* Card 1 */}
+          <div className="orbit-feature-card">
+            <div>
+              <div className="card-num">MODE // 01</div>
+              <div className="card-icon-wrap">
+                <Terminal className="w-6 h-6" />
+              </div>
+              <h3 className="card-title">Neural ASCII Matrix</h3>
+              <p className="card-text">
+                Sub-pixel brightness mapping across 8 distinct density character sets (Cyberpunk, Matrix, Braille, Binary, and Classic block ramps) with font aspect ratio compensation.
+              </p>
+            </div>
+            <div className="card-badges">
+              <span className="card-badge">8 Charsets</span>
+              <span className="card-badge">Aspect Sync</span>
+              <span className="card-badge">HTML Exporter</span>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className="orbit-feature-card">
+            <div>
+              <div className="card-num">MODE // 02</div>
+              <div className="card-icon-wrap">
+                <Flame className="w-6 h-6" />
+              </div>
+              <h3 className="card-title">Dither Matrix Lab</h3>
+              <p className="card-text">
+                9 hardware-accelerated dithering algorithms including Floyd-Steinberg, Atkinson, Bayer 4×4/8×8 ordered patterns, Sierra Lite, Burkes, and Halftone frequency screening.
+              </p>
+            </div>
+            <div className="card-badges">
+              <span className="card-badge">9 Algorithms</span>
+              <span className="card-badge">Error Diffusion</span>
+              <span className="card-badge">Bit Depth Control</span>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="orbit-feature-card">
+            <div>
+              <div className="card-num">MODE // 03</div>
+              <div className="card-icon-wrap">
+                <Camera className="w-6 h-6" />
+              </div>
+              <h3 className="card-title">Live Camera Stream</h3>
+              <p className="card-text">
+                Zero-latency 60 FPS webcam ingestion. Turn your live camera into a real-time ASCII hologram or 1-bit Macintosh phosphor viewfinder with live horizontal flipping.
+              </p>
+            </div>
+            <div className="card-badges">
+              <span className="card-badge">60 FPS Realtime</span>
+              <span className="card-badge">Zero Server Lag</span>
+              <span className="card-badge">Mirror Mode</span>
+            </div>
+          </div>
+
+          {/* Card 4 */}
+          <div className="orbit-feature-card">
+            <div>
+              <div className="card-num">MODE // 04</div>
+              <div className="card-icon-wrap">
+                <Download className="w-6 h-6" />
+              </div>
+              <h3 className="card-title">8K UHD Master Export</h3>
+              <p className="card-text">
+                Asynchronous binary streaming generates uncompressed 4K and 8K print-ready PNG posters without memory corruption, plus pure ANSI text and CSS-styled web pages.
+              </p>
+            </div>
+            <div className="card-badges">
+              <span className="card-badge">Up to 8192px</span>
+              <span className="card-badge">Binary Blob Stream</span>
+              <span className="card-badge">Lossless PNG</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          3. LIVE SHOWCASE & RETRO PALETTES (#benefits)
+          ==================================================================== */}
+      <section className="content-section" id="benefits">
+        <div className="section-header">
+          <span className="section-tag">02 // RETRO PALETTES & PHOSPHORS</span>
+          <h2 className="section-title">
+            Curated Color Systems <span className="section-title-gradient">from Vintage Eras</span>
+          </h2>
+          <p className="section-desc">
+            Quantize full-color imagery against 10 legendary hardware palettes, from Game Boy 4-shade green to Commodore 64 and Synthwave cyber aesthetics.
+          </p>
+        </div>
+
+        <div className="showcase-container">
+          {/* Visual Media Box */}
+          <div className="showcase-media-box">
+            <img
+              src={FRONT_LILY_URL}
+              alt="Pixel art showcase"
+              className="showcase-media-img"
+            />
+            <div className="showcase-floating-hud">
+              <div className="showcase-hud-info">
+                <span className="showcase-hud-label">ATKINSON // GAMEBOY 4-SHADE</span>
+                <span className="showcase-hud-sub">QUANTIZATION MATRIX: ACTIVE</span>
+              </div>
+              <span className="card-badge">4-COLOR DMG</span>
+            </div>
+          </div>
+
+          {/* Details List */}
+          <div className="showcase-content-details">
+            <div className="showcase-item">
+              <div className="showcase-item-icon">
+                <Palette className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="showcase-item-title">10 Curated Vintage Palettes</h4>
+                <p className="showcase-item-desc">
+                  Game Boy DMG, Commodore 64, PICO-8, Macintosh 1-bit, Cyberpunk Neon, Amber Phosphor, CGA Mode 1, and True Color quantization.
+                </p>
+              </div>
+            </div>
+
+            <div className="showcase-item">
+              <div className="showcase-item-icon">
+                <Sliders className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="showcase-item-title">Dynamic Contrast & Gain Calibration</h4>
+                <p className="showcase-item-desc">
+                  Tune luminance curves, brightness thresholds, negative inversion, and error diffusion strength in real-time before rasterization.
+                </p>
+              </div>
+            </div>
+
+            <div className="showcase-item">
+              <div className="showcase-item-icon">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="showcase-item-title">Authentic CRT Phosphor Glow & Scanlines</h4>
+                <p className="showcase-item-desc">
+                  Simulate vintage cathode-ray tube raster lines, ambient bloom, and Web Audio synthesized keyboard SFX for deep tactile immersion.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          4. 3-STEP CREATIVE WORKFLOW
+          ==================================================================== */}
+      <section className="content-section">
+        <div className="section-header">
+          <span className="section-tag">03 // CREATIVE WORKFLOW</span>
+          <h2 className="section-title">
+            From Raw Pixels to <span className="section-title-gradient">Master Art in Seconds</span>
+          </h2>
+          <p className="section-desc">
+            A streamlined, responsive workstation designed for designers, developers, digital artists, and creative technologists.
+          </p>
+        </div>
+
+        <div className="workflow-grid">
+          <div className="workflow-card">
+            <div className="workflow-card-step">1</div>
+            <h3 className="workflow-card-title">Ingest Any Source</h3>
+            <p className="workflow-card-text">
+              Drag and drop any high or low resolution image file (PNG, JPG, WEBP, SVG) or click to initiate your live webcam feed directly.
+            </p>
+          </div>
+
+          <div className="workflow-card">
+            <div className="workflow-card-step">2</div>
+            <h3 className="workflow-card-title">Modulate & Upscale</h3>
+            <p className="workflow-card-text">
+              Switch between ASCII, Dithered Pixels, and Hybrid modes. Apply 2x, 4x, or 8x nearest-neighbor or smooth bicubic upscaling.
+            </p>
+          </div>
+
+          <div className="workflow-card">
+            <div className="workflow-card-step">3</div>
+            <h3 className="workflow-card-title">Export Lossless Masters</h3>
+            <p className="workflow-card-text">
+              Instantly download uncompressed 4K or 8K UHD PNG files, copy formatted plain text ASCII, or export responsive HTML code.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          5. TECHNICAL ARCHITECTURE MATRIX
+          ==================================================================== */}
+      <section className="content-section">
+        <div className="tech-matrix-box">
+          <div className="tech-stat-unit">
+            <span className="tech-stat-value">100%</span>
+            <span className="tech-stat-label">Local Compute</span>
+            <span className="tech-stat-sub">Zero images uploaded to servers. All pixel processing occurs client-side.</span>
+          </div>
+
+          <div className="tech-stat-unit">
+            <span className="tech-stat-value">0 ms</span>
+            <span className="tech-stat-label">Queue Latency</span>
+            <span className="tech-stat-sub">Instantaneous rendering powered by HTML5 Canvas and WebGL acceleration.</span>
+          </div>
+
+          <div className="tech-stat-unit">
+            <span className="tech-stat-value">8K UHD</span>
+            <span className="tech-stat-label">Max Canvas Buffer</span>
+            <span className="tech-stat-sub">Up to 8192×8192px multi-megabyte lossless binary export streaming.</span>
+          </div>
+
+          <div className="tech-stat-unit">
+            <span className="tech-stat-value">0 Cloud Dep</span>
+            <span className="tech-stat-label">Offline Ready</span>
+            <span className="tech-stat-sub">Fully functional offline with Web Audio synthesized soundscapes.</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          6. FINAL CALL TO ACTION & FOOTER (#contact)
+          ==================================================================== */}
+      <div className="cta-section-wrapper" id="contact">
+        <svg className="cta-asterisk" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+          <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+          <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+          <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+        </svg>
+
+        <h2 className="cta-heading">
+          Create Art from <span className="section-title-gradient">Pixels & Typography</span>
+        </h2>
+        <p className="cta-sub">
+          Launch the full-screen studio now. No accounts required, completely private and free.
+        </p>
+
+        <button
+          type="button"
+          className="btn-cta-launch"
+          onClick={handlePillClick}
+        >
+          <span>Launch Studio Now</span>
+          <ArrowRight className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Minimal Footer */}
+      <footer className="orbit-footer">
+        <div className="footer-left">
+          <svg className="w-5 h-5" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
             <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
             <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
             <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
             <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
           </svg>
+          <span>ORBIT STUDIO // NEURAL ASCII & DITHER MATRIX GENERATOR</span>
         </div>
-
-        {/* Primary Desktop Nav */}
-        <ul className="primary-nav" role="navigation" aria-label="Main Navigation">
-          <li className="nav-item-home">
-            <Link href="#home">Home</Link>
-          </li>
-          <li className="nav-item-resources">
-            <Link href="#resources">Resources</Link>
-          </li>
-          <li className="nav-item-benefits">
-            <Link href="#benefits">Benefits</Link>
-          </li>
-          <li className="nav-item-contact">
-            <Link href="#contact">Contact</Link>
-          </li>
-        </ul>
-
-        {/* Action Pill Button (Directs to Studio) */}
-        <button
-          type="button"
-          className="secure-pill"
-          onClick={handlePillClick}
-          aria-label="Direct to Studio"
-        >
-          <span>{pillText}</span>
-        </button>
-
-        {/* Wordmark ORBIT */}
-        <h1 className="orbit-word" id="orbit-title" aria-label="Orbit">
-          <span className="orbit-word__mask">
-            <span className="orbit-word__inner">
-              <span className="orbit-word__white">
-                <span className="orbit-word__o">O</span>R
-              </span>
-              <span className="orbit-word__pink">BIT</span>
-            </span>
-          </span>
-        </h1>
-
-        {/* Flower Stack (Front & Reveal with dynamic morph-trail masks) */}
-        <div className="flower" ref={flowerRef}>
-          <img
-            className="flower__sizer"
-            src={FRONT_LILY_URL}
-            alt=""
-            aria-hidden="true"
-          />
-          <div className="flower__layer flower__layer--bg" ref={bgLayerRef}>
-            <img
-              src={FRONT_LILY_URL}
-              alt="Pixel-art pink and violet lily"
-            />
-          </div>
-          <div className="flower__layer flower__layer--top" ref={topLayerRef} aria-hidden="true">
-            <img
-              src={REVEAL_LILY_URL}
-              alt=""
-            />
-          </div>
+        <div className="footer-links">
+          <Link href="#home">Back to Top ↑</Link>
+          <Link href="/studio">Open Studio</Link>
         </div>
-
-        {/* Left Corner Copy */}
-        <p className="support-copy support-copy--left">
-          <span className="support-copy__inner">
-            Every workflow,<br />intelligently connected.
-          </span>
-        </p>
-
-        {/* Right Corner Copy */}
-        <p className="support-copy support-copy--right">
-          <span className="support-copy__inner">
-            Less manual work.<br />More meaningful output.
-          </span>
-        </p>
-
-        {/* Mobile Burger Button */}
-        <button
-          type="button"
-          className={`mobile-burger ${menuOpen ? 'open' : ''}`}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle navigation menu"
-          aria-expanded={menuOpen}
-        >
-          <div className="mobile-burger-lines">
-            <span />
-            <span />
-            <span />
-          </div>
-        </button>
-
-        {/* Mobile Backdrop Scrim */}
-        <div
-          className={`mobile-scrim ${menuOpen ? 'open' : ''}`}
-          onClick={() => setMenuOpen(false)}
-          aria-hidden="true"
-        />
-
-        {/* Mobile Navigation Sheet */}
-        <div className={`mobile-sheet ${menuOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
-          <nav className="mobile-nav-links">
-            <Link href="#home" onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link href="#resources" onClick={() => setMenuOpen(false)}>Resources</Link>
-            <Link href="#benefits" onClick={() => setMenuOpen(false)}>Benefits</Link>
-            <Link href="#contact" onClick={() => setMenuOpen(false)}>Contact</Link>
-          </nav>
-
-          <button
-            type="button"
-            className="mobile-pill"
-            onClick={(e) => {
-              setMenuOpen(false);
-              handlePillClick(e);
-            }}
-          >
-            {pillText}
-          </button>
-        </div>
-      </section>
-    </main>
+      </footer>
+    </div>
   );
 };
