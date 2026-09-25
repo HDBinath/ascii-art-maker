@@ -3,7 +3,7 @@
 import React from 'react';
 import { AppMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
-import { Terminal, Sparkles, Tv, Volume2, VolumeX, Eye, Flame, Binary } from 'lucide-react';
+import { Terminal, Tv, Volume2, VolumeX, Flame, Binary } from 'lucide-react';
 
 interface HeaderProps {
   mode: AppMode;
@@ -12,7 +12,6 @@ interface HeaderProps {
   setAudioEnabled: (enabled: boolean) => void;
   crtEnabled: boolean;
   setCrtEnabled: (enabled: boolean) => void;
-  onLoadSample: (sampleType: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,7 +21,6 @@ export const Header: React.FC<HeaderProps> = ({
   setAudioEnabled,
   crtEnabled,
   setCrtEnabled,
-  onLoadSample,
 }) => {
   const handleModeChange = (newMode: AppMode) => {
     soundFx.playClick();
@@ -81,17 +79,6 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="header-right">
-        {/* Preset Samples */}
-        <div className="sample-presets-group">
-          <span className="group-label"><Sparkles className="w-3.5 h-3.5" /> SAMPLES:</span>
-          <button type="button" className="btn-chip" onClick={() => { soundFx.playClick(); onLoadSample('cyber-cat'); }}>Cyber-Cat</button>
-          <button type="button" className="btn-chip" onClick={() => { soundFx.playClick(); onLoadSample('skull'); }}>Skull</button>
-          <button type="button" className="btn-chip" onClick={() => { soundFx.playClick(); onLoadSample('matrix-neo'); }}>Grid</button>
-          <button type="button" className="btn-chip" onClick={() => { soundFx.playClick(); onLoadSample('synthwave'); }}>Synthwave</button>
-        </div>
-
-        <div className="header-divider" />
-
         {/* CRT Scanline Toggle */}
         <button
           type="button"

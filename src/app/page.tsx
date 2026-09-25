@@ -9,7 +9,7 @@ import { BottomControlDock } from '@/components/BottomControlDock';
 import { processAsciiArt, generateHtmlExport } from '@/lib/asciiEngine';
 import { processDitheredPixelArt } from '@/lib/ditherEngine';
 import { soundFx } from '@/lib/soundFx';
-import { CheckCircle2, UploadCloud } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function Home() {
   const [mode, setMode] = useState<AppMode>('ascii');
@@ -50,6 +50,7 @@ export default function Home() {
   const sourceCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const targetCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const hiddenFileInputRef = useRef<HTMLInputElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
   // Cached Export Text & Stats
@@ -237,132 +238,6 @@ export default function Home() {
     setStats({ width: 0, height: 0, count: 0, unitName: 'CHARS' });
   };
 
-  // Generate Sample Presets
-  const handleLoadSample = useCallback((sampleType: string) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 400;
-    canvas.height = 400;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    if (sampleType === 'cyber-cat') {
-      ctx.fillStyle = '#05070a';
-      ctx.fillRect(0, 0, 400, 400);
-
-      // Ears
-      ctx.fillStyle = '#00f0ff';
-      ctx.beginPath();
-      ctx.moveTo(80, 160); ctx.lineTo(120, 50); ctx.lineTo(170, 130); ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(320, 160); ctx.lineTo(280, 50); ctx.lineTo(230, 130); ctx.fill();
-
-      // Head
-      ctx.fillStyle = '#00ff41';
-      ctx.beginPath();
-      ctx.arc(200, 210, 110, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Glowing Eyes
-      ctx.fillStyle = '#ff0055';
-      ctx.beginPath();
-      ctx.arc(160, 195, 22, 0, Math.PI * 2);
-      ctx.arc(240, 195, 22, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Pupils
-      ctx.fillStyle = '#ffe600';
-      ctx.fillRect(157, 182, 6, 26);
-      ctx.fillRect(237, 182, 6, 26);
-
-      // Whiskers
-      ctx.strokeStyle = '#00f0ff';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(110, 240); ctx.lineTo(40, 225);
-      ctx.moveTo(110, 255); ctx.lineTo(40, 260);
-      ctx.moveTo(290, 240); ctx.lineTo(360, 225);
-      ctx.moveTo(290, 255); ctx.lineTo(360, 260);
-      ctx.stroke();
-
-    } else if (sampleType === 'skull') {
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, 400, 400);
-
-      // Skull Cranium
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(200, 170, 100, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Jaw
-      ctx.fillRect(155, 230, 90, 80);
-
-      // Eye Sockets
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(165, 175, 25, 0, Math.PI * 2);
-      ctx.arc(235, 175, 25, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Nose Cavity
-      ctx.beginPath();
-      ctx.moveTo(200, 195); ctx.lineTo(190, 225); ctx.lineTo(210, 225); ctx.fill();
-
-      // Teeth
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 4;
-      for (let i = 170; i <= 230; i += 15) {
-        ctx.beginPath();
-        ctx.moveTo(i, 270);
-        ctx.lineTo(i, 305);
-        ctx.stroke();
-      }
-    } else if (sampleType === 'synthwave') {
-      const sky = ctx.createLinearGradient(0, 0, 0, 400);
-      sky.addColorStop(0, '#0d0221');
-      sky.addColorStop(0.6, '#261447');
-      sky.addColorStop(1, '#ff3864');
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, 400, 400);
-
-      const sun = ctx.createRadialGradient(200, 220, 20, 200, 220, 90);
-      sun.addColorStop(0, '#ffe600');
-      sun.addColorStop(0.7, '#ff0055');
-      sun.addColorStop(1, 'transparent');
-      ctx.fillStyle = sun;
-      ctx.beginPath();
-      ctx.arc(200, 220, 90, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#0d0221';
-      for (let y = 170; y <= 270; y += 14) {
-        ctx.fillRect(100, y, 200, (y - 150) * 0.08 + 2);
-      }
-    } else {
-      ctx.fillStyle = '#001100';
-      ctx.fillRect(0, 0, 400, 400);
-      const grad = ctx.createRadialGradient(200, 200, 20, 200, 200, 180);
-      grad.addColorStop(0, '#00ff41');
-      grad.addColorStop(0.6, '#008f11');
-      grad.addColorStop(1, '#001100');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(200, 200, 170, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 48px monospace';
-      ctx.fillText('NEO::42', 110, 215);
-    }
-
-    handleImageLoaded(canvas);
-  }, [handleImageLoaded]);
-
-  // Load default sample on mount
-  useEffect(() => {
-    handleLoadSample('cyber-cat');
-  }, [handleLoadSample]);
-
   // Global Drag and Drop Handler
   const handleGlobalDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -371,12 +246,31 @@ export default function Home() {
     }
   };
 
+  const triggerUploadClick = () => {
+    hiddenFileInputRef.current?.click();
+  };
+
+  const hasImage = Boolean(previewUrl || sourceType === 'webcam');
+
   return (
     <div
       className={`cyber-app-shell ${crtEnabled ? 'crt-active' : ''}`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleGlobalDrop}
     >
+      <input
+        type="file"
+        ref={hiddenFileInputRef}
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            handleFileUpload(e.target.files[0]);
+            e.target.value = '';
+          }
+        }}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* CRT Scanline Shader Overlay */}
       <div className="crt-scanlines-overlay" />
       <div className="crt-glow-bloom" />
@@ -389,7 +283,6 @@ export default function Home() {
         setAudioEnabled={setAudioEnabled}
         crtEnabled={crtEnabled}
         setCrtEnabled={setCrtEnabled}
-        onLoadSample={handleLoadSample}
       />
 
       {/* Main Full-Screen Hero Viewport with Top-Right PiP */}
@@ -398,6 +291,12 @@ export default function Home() {
           options={options}
           canvasRef={targetCanvasRef}
           sourceCanvasRef={sourceCanvasRef}
+          hasImage={hasImage}
+          onUploadClick={triggerUploadClick}
+          onWebcamClick={() => {
+            soundFx.playClick();
+            setSourceType(sourceType === 'webcam' ? 'upload' : 'webcam');
+          }}
           stats={stats}
         />
 
@@ -406,7 +305,7 @@ export default function Home() {
           previewUrl={previewUrl}
           sourceType={sourceType}
           onClearImage={handleClearImage}
-          onUploadClick={() => {}}
+          onUploadClick={triggerUploadClick}
           webcamMirrored={webcamMirrored}
           setWebcamMirrored={setWebcamMirrored}
           videoRef={videoRef}
