@@ -10,6 +10,7 @@ interface ViewportProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   sourceCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   hasImage: boolean;
+  isProcessing?: boolean;
   onUploadClick: () => void;
   onWebcamClick: () => void;
   stats: {
@@ -20,19 +21,33 @@ interface ViewportProps {
   };
 }
 
+const GLYPH_POOL = ['0', '1', '█', '#', '@', '¥', '§', '▲', '░', '▓', '▒', '✦', '⌘', 'Ø', '◈', '❖'];
+
 export const Viewport: React.FC<ViewportProps> = ({
   options,
   canvasRef,
   sourceCanvasRef,
   hasImage,
+  isProcessing = false,
   onUploadClick,
   onWebcamClick,
   stats,
 }) => {
   const [splitView, setSplitView] = useState(false);
   const [splitPos, setSplitPos] = useState(50); // percentage (0 - 100)
+  const [activeGlyph, setActiveGlyph] = useState('◈');
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+
+  // Cycle matrix glyphs when processing
+  useEffect(() => {
+    if (!isProcessing) return;
+    const interval = setInterval(() => {
+      const randomIdx = Math.floor(Math.random() * GLYPH_POOL.length);
+      setActiveGlyph(GLYPH_POOL[randomIdx]);
+    }, 80);
+    return () => clearInterval(interval);
+  }, [isProcessing]);
 
   const handlePointerDown = () => {
     isDraggingRef.current = true;
@@ -67,7 +82,7 @@ export const Viewport: React.FC<ViewportProps> = ({
             <span className="pulse-dot" />
             <span>RENDER ENGINE: {options.mode.toUpperCase()}</span>
           </span>
-          {hasImage && (
+          {hasImage && !isProcessing && (
             <>
               <span className="hud-meta">
                 <Maximize2 className="w-3.5 h-3.5 text-neutral-300" />
@@ -79,9 +94,14 @@ export const Viewport: React.FC<ViewportProps> = ({
               </span>
             </>
           )}
+          {isProcessing && (
+            <span className="hud-meta text-pink-400 animate-pulse">
+              <span>PROCESSING STREAM...</span>
+            </span>
+          )}
         </div>
 
-        {hasImage && (
+        {hasImage && !isProcessing && (
           <div className="hud-tools-group">
             <button
               type="button"
@@ -107,14 +127,23 @@ export const Viewport: React.FC<ViewportProps> = ({
         {/* Hidden Source Canvas */}
         <canvas ref={sourceCanvasRef} className="hidden-source-canvas" />
 
-        {hasImage ? (
-          <div className="canvas-wrapper-center">
-            <canvas
-              ref={canvasRef}
-              className={`main-output-canvas ${splitView ? 'split-active' : ''}`}
-            />
-          </div>
-        ) : (
+        {/* Output Canvas (ALWAYS MOUNTED so renderPipeline() never loses target canvas reference) */}
+        <div
+          className="canvas-wrapper-center"
+          style={{
+            display: hasImage ? 'flex' : 'none',
+            opacity: isProcessing ? 0.3 : 1,
+            transition: 'opacity 0.25s ease',
+          }}
+        >
+          <canvas
+            ref={canvasRef}
+            className={`main-output-canvas ${splitView ? 'split-active' : ''}`}
+          />
+        </div>
+
+        {/* Idle Dropzone */}
+        {!hasImage && !isProcessing && (
           <div className="viewport-idle-dropzone" onClick={onUploadClick}>
             <div className="idle-icon-ring">
               <svg className="w-8 h-8" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -154,8 +183,34 @@ export const Viewport: React.FC<ViewportProps> = ({
           </div>
         )}
 
+        {/* Futuristic Laser Scanning & Matrix Processing Overlay */}
+        {isProcessing && (
+          <div className="viewport-processing-overlay">
+            <div className="processing-laser-line" />
+            <div className="processing-glow-ring">
+              <div className="processing-spinner" />
+              <div className="processing-inner-glyph">
+                <span className="matrix-char-flux">{activeGlyph}</span>
+              </div>
+            </div>
+            <div className="processing-meta-box">
+              <div className="processing-title">ORBIT NEURAL MATRIX ENGINE</div>
+              <div className="processing-status-bar">
+                <div className="processing-progress-bar" />
+              </div>
+              <div className="processing-subtitle">
+                {options.mode === 'dither'
+                  ? 'DIFFUSING ERROR PATTERNS...'
+                  : options.mode === 'hybrid'
+                  ? 'SYNTHESIZING DITHER-ASCII HYBRID PHOSPHOR...'
+                  : 'MAPPING SUB-PIXEL LUMINANCE CHARACTERS...'}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Split View Divider Handle */}
-        {hasImage && splitView && (
+        {hasImage && !isProcessing && splitView && (
           <div
             className="split-divider-handle"
             style={{ left: `${splitPos}%` }}
@@ -171,3 +226,4 @@ export const Viewport: React.FC<ViewportProps> = ({
     </div>
   );
 };
+

@@ -16,6 +16,7 @@ export default function StudioPage() {
   const [mode, setMode] = useState<AppMode>('ascii');
   const [sourceType, setSourceType] = useState<'upload' | 'webcam'>('upload');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [webcamMirrored, setWebcamMirrored] = useState<boolean>(true);
   const [audioEnabled, setAudioEnabled] = useState<boolean>(false);
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
@@ -156,25 +157,43 @@ export default function StudioPage() {
       } else {
         setPreviewUrl(srcCanvas.toDataURL('image/png'));
       }
+      // Render immediately
       renderPipeline();
+      requestAnimationFrame(() => {
+        renderPipeline();
+      });
     }
   }, [options.upscaleFactor, options.upscaleMode, renderPipeline]);
 
-  // File Upload Handler
+  // File Upload Handler with Matrix Scanning Animation
   const handleFileUpload = (file: File) => {
     if (!file.type.startsWith('image/')) {
       showToast('Please select a valid image file.');
       return;
     }
+    setIsProcessing(true);
+    soundFx.playScan();
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         handleImageLoaded(img);
-        soundFx.playScan();
-        showToast('Image Loaded Successfully!');
+        setTimeout(() => {
+          setIsProcessing(false);
+          soundFx.playSuccess();
+          showToast('Image Converted Successfully!');
+        }, 420);
+      };
+      img.onerror = () => {
+        setIsProcessing(false);
+        showToast('Failed to load selected image.');
       };
       img.src = event.target?.result as string;
+    };
+    reader.onerror = () => {
+      setIsProcessing(false);
+      showToast('Failed to read image file.');
     };
     reader.readAsDataURL(file);
   };
@@ -317,6 +336,7 @@ export default function StudioPage() {
           canvasRef={targetCanvasRef}
           sourceCanvasRef={sourceCanvasRef}
           hasImage={hasImage}
+          isProcessing={isProcessing}
           onUploadClick={triggerUploadClick}
           onWebcamClick={() => {
             soundFx.playClick();

@@ -1064,3 +1064,122 @@ body {
 }
 
 .mt-1 { margin-top: 4px; }
+
+/* Futuristic Processing & Conversion Scanning Overlay */
+.viewport-processing-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 17, 17, 0.88);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+  gap: 20px;
+  animation: fadeInProc 0.2s ease-out;
+}
+
+@keyframes fadeInProc {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.processing-glow-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.processing-spinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-top-color: var(--neon-pink);
+  border-right-color: #ffffff;
+  animation: spinPulse 0.9s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  box-shadow: 0 0 24px var(--neon-pink-glow);
+}
+
+.processing-inner-glyph {
+  font-family: var(--font-hud);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--neon-pink);
+  text-shadow: 0 0 12px var(--neon-pink-glow);
+  z-index: 2;
+  user-select: none;
+}
+
+.processing-meta-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.processing-title {
+  font-family: var(--font-hud);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.processing-status-bar {
+  width: 220px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.processing-progress-bar {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #ffc5dc, #fd86db, #ffffff);
+  border-radius: 999px;
+  animation: progressPulse 1.2s ease-in-out infinite;
+}
+
+.processing-subtitle {
+  font-family: var(--font-lisa);
+  font-size: 11px;
+  color: var(--text-sub);
+  letter-spacing: 0.06em;
+}
+
+.processing-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(253, 134, 219, 0.9) 50%, transparent 100%);
+  box-shadow: 0 0 16px var(--neon-pink);
+  animation: scanLaser 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes scanLaser {
+  0% { top: 0%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes spinPulse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes progressPulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
