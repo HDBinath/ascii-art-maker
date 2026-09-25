@@ -70,11 +70,11 @@ export const Viewport: React.FC<ViewportProps> = ({
           {hasImage && (
             <>
               <span className="hud-meta">
-                <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                <Maximize2 className="w-3.5 h-3.5 text-neutral-300" />
                 <span>{stats.width} × {stats.height}</span>
               </span>
               <span className="hud-meta">
-                <Hash className="w-3.5 h-3.5 text-green-400" />
+                <Hash className="w-3.5 h-3.5 text-pink-400" />
                 <span>{stats.count.toLocaleString()} {stats.unitName}</span>
               </span>
             </>
@@ -117,10 +117,15 @@ export const Viewport: React.FC<ViewportProps> = ({
         ) : (
           <div className="viewport-idle-dropzone" onClick={onUploadClick}>
             <div className="idle-icon-ring">
-              <UploadCloud className="w-10 h-10 text-green-400" />
+              <svg className="w-8 h-8" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+              </svg>
             </div>
-            <h2 className="idle-title">DROP AN IMAGE HERE</h2>
-            <p className="idle-subtitle">or click anywhere to browse from your device</p>
+            <h2 className="idle-title">Drop an image here to convert</h2>
+            <p className="idle-subtitle">Upload any low or high resolution photo to generate retro dithered pixel art or ASCII art</p>
             <div className="idle-quick-actions">
               <button
                 type="button"
@@ -131,7 +136,7 @@ export const Viewport: React.FC<ViewportProps> = ({
                 }}
               >
                 <UploadCloud className="w-4 h-4" />
-                <span>CHOOSE FILE</span>
+                <span>Upload Image</span>
               </button>
               <button
                 type="button"
@@ -142,7 +147,7 @@ export const Viewport: React.FC<ViewportProps> = ({
                 }}
               >
                 <Camera className="w-4 h-4" />
-                <span>START WEBCAM</span>
+                <span>Live Webcam</span>
               </button>
             </div>
             <span className="idle-hint">Supports PNG, JPG, WEBP, GIF, SVG</span>
@@ -158,7 +163,7 @@ export const Viewport: React.FC<ViewportProps> = ({
           >
             <div className="split-line" />
             <div className="split-knob">
-              <SplitSquareHorizontal className="w-3 h-3 text-black" />
+              <SplitSquareHorizontal className="w-3.5 h-3.5 text-black" />
             </div>
           </div>
         )}

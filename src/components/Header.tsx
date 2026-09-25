@@ -45,13 +45,24 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="cyber-header">
       <div className="header-left">
-        <Link href="/" className="btn-utility flex items-center gap-1 text-xs px-2.5 py-1 text-neutral-300 hover:text-white border border-neutral-700/60 rounded-md bg-neutral-900/60 hover:bg-neutral-800/80 transition-colors">
+        <Link href="/" className="btn-utility" title="Return to Landing Page">
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Home</span>
         </Link>
+
+        {/* Orbit Brand Mark & Title */}
         <div className="brand-badge">
-          <span className="brand-title">CYBER::STUDIO</span>
-          <span className="brand-tag">v2.0 // NEURAL_PIXEL</span>
+          <svg className="brand-asterisk-icon" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+            <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+            <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+            <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+          </svg>
+          <div className="brand-title">
+            <span className="brand-title-white">OR</span>
+            <span className="brand-title-pink">BIT</span>
+          </div>
+          <span className="brand-tag">STUDIO // RETRO PIXEL & ASCII</span>
         </div>
 
         {/* Mode Switcher Tabs */}
@@ -61,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`tab-btn ${mode === 'ascii' ? 'active' : ''}`}
             onClick={() => handleModeChange('ascii')}
           >
-            <Terminal className="w-4 h-4" />
+            <Terminal className="w-3.5 h-3.5" />
             <span>ASCII ART</span>
           </button>
           <button
@@ -69,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`tab-btn ${mode === 'dither' ? 'active' : ''}`}
             onClick={() => handleModeChange('dither')}
           >
-            <Flame className="w-4 h-4" />
+            <Flame className="w-3.5 h-3.5" />
             <span>DITHERED PIXELS</span>
           </button>
           <button
@@ -77,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`tab-btn ${mode === 'hybrid' ? 'active' : ''}`}
             onClick={() => handleModeChange('hybrid')}
           >
-            <Binary className="w-4 h-4" />
+            <Binary className="w-3.5 h-3.5" />
             <span>DITHER-ASCII HYBRID</span>
           </button>
         </nav>
@@ -91,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={handleCrtToggle}
           title="Toggle CRT Scanlines & Glow"
         >
-          <Tv className="w-4 h-4" />
+          <Tv className="w-3.5 h-3.5" />
           <span>CRT FX</span>
         </button>
 
@@ -100,9 +111,9 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           className={`btn-utility ${audioEnabled ? 'active' : ''}`}
           onClick={handleAudioToggle}
-          title="Toggle Web Audio Synthesizer FX"
+          title="Toggle Web Audio SFX"
         >
-          {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          {audioEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
           <span>SFX</span>
         </button>
       </div>

@@ -71,10 +71,10 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
   const triggerConfetti = () => {
     try {
       confetti({
-        particleCount: 45,
-        spread: 60,
+        particleCount: 50,
+        spread: 65,
         origin: { y: 0.85 },
-        colors: ['#00ff41', '#00f0ff', '#ff71ce', '#ffe600'],
+        colors: ['#ffc5dc', '#fd86db', '#ffffff', '#ff94e0', '#fce7f3'],
       });
     } catch {}
   };
@@ -94,7 +94,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
       const link = document.createElement('a');
       link.href = url;
       const scaleLabel = options.exportScale > 1 ? `_${options.exportScale}x_HD` : '';
-      link.download = `cyber_${options.mode}${scaleLabel}_${Date.now()}.png`;
+      link.download = `orbit_${options.mode}${scaleLabel}_${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
