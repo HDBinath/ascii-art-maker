@@ -3,13 +3,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AppMode, AppOptions } from '@/lib/types';
 import { Header } from '@/components/Header';
-import { SourceSelector } from '@/components/SourceSelector';
-import { ControlDeck } from '@/components/ControlDeck';
 import { Viewport } from '@/components/Viewport';
-import { ExportToolbar } from '@/components/ExportToolbar';
+import { OriginalImagePiP } from '@/components/OriginalImagePiP';
+import { BottomControlDock } from '@/components/BottomControlDock';
 import { processAsciiArt, generateHtmlExport } from '@/lib/asciiEngine';
 import { processDitheredPixelArt } from '@/lib/ditherEngine';
-import { CheckCircle2 } from 'lucide-react';
+import { soundFx } from '@/lib/soundFx';
+import { CheckCircle2, UploadCloud } from 'lucide-react';
 
 export default function Home() {
   const [mode, setMode] = useState<AppMode>('ascii');
@@ -25,7 +25,7 @@ export default function Home() {
     contrast: 1.2,
     brightness: 1.0,
     invert: false,
-    columns: 100,
+    columns: 110,
     fontSize: 12,
     aspectRatio: 0.55,
     charset: 'cyberpunk',
@@ -46,11 +46,13 @@ export default function Home() {
     setOptions(prev => ({ ...prev, mode }));
   }, [mode]);
 
-  // Canvas Refs
+  // Canvas & Media Refs
   const sourceCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const targetCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const animFrameRef = useRef<number | null>(null);
 
-  // Cached Export Text
+  // Cached Export Text & Stats
   const [plainText, setPlainText] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [stats, setStats] = useState({
@@ -112,7 +114,7 @@ export default function Home() {
   }, [options, renderPipeline, sourceType]);
 
   // Load Image onto source canvas
-  const handleImageLoaded = (img: HTMLImageElement | HTMLCanvasElement) => {
+  const handleImageLoaded = useCallback((img: HTMLImageElement | HTMLCanvasElement) => {
     const srcCanvas = sourceCanvasRef.current;
     if (!srcCanvas) return;
 
@@ -131,33 +133,87 @@ export default function Home() {
       }
       renderPipeline();
     }
+  }, [renderPipeline]);
+
+  // File Upload Handler
+  const handleFileUpload = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        handleImageLoaded(img);
+        soundFx.playScan();
+        showToast('Image Loaded Successfully!');
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
-  // Webcam live frame handler
-  const handleWebcamFrame = useCallback((videoEl: HTMLVideoElement) => {
-    const srcCanvas = sourceCanvasRef.current;
-    if (!srcCanvas) return;
+  // Webcam live frame loop
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    let isActive = true;
 
-    const vw = videoEl.videoWidth || 640;
-    const vh = videoEl.videoHeight || 480;
+    if (sourceType === 'webcam') {
+      const startCamera = async () => {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+          });
+          if (videoRef.current && isActive) {
+            videoRef.current.srcObject = stream;
+            await videoRef.current.play();
+            soundFx.playScan();
 
-    if (srcCanvas.width !== vw || srcCanvas.height !== vh) {
-      srcCanvas.width = vw;
-      srcCanvas.height = vh;
+            const loop = () => {
+              if (videoRef.current && videoRef.current.readyState >= 2) {
+                const srcCanvas = sourceCanvasRef.current;
+                if (srcCanvas) {
+                  const vw = videoRef.current.videoWidth || 640;
+                  const vh = videoRef.current.videoHeight || 480;
+                  if (srcCanvas.width !== vw || srcCanvas.height !== vh) {
+                    srcCanvas.width = vw;
+                    srcCanvas.height = vh;
+                  }
+                  const ctx = srcCanvas.getContext('2d');
+                  if (ctx) {
+                    ctx.save();
+                    if (webcamMirrored) {
+                      ctx.translate(vw, 0);
+                      ctx.scale(-1, 1);
+                    }
+                    ctx.drawImage(videoRef.current, 0, 0, vw, vh);
+                    ctx.restore();
+                    renderPipeline();
+                  }
+                }
+              }
+              animFrameRef.current = requestAnimationFrame(loop);
+            };
+            animFrameRef.current = requestAnimationFrame(loop);
+          }
+        } catch (err) {
+          console.error('Camera access denied:', err);
+          showToast('Webcam access was denied or unavailable.');
+          setSourceType('upload');
+        }
+      };
+      startCamera();
     }
 
-    const ctx = srcCanvas.getContext('2d');
-    if (ctx) {
-      ctx.save();
-      if (webcamMirrored) {
-        ctx.translate(vw, 0);
-        ctx.scale(-1, 1);
+    return () => {
+      isActive = false;
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
-      ctx.drawImage(videoEl, 0, 0, vw, vh);
-      ctx.restore();
-      renderPipeline();
-    }
-  }, [webcamMirrored, renderPipeline]);
+    };
+  }, [sourceType, webcamMirrored, renderPipeline]);
 
   // Clear Image
   const handleClearImage = () => {
@@ -182,7 +238,7 @@ export default function Home() {
   };
 
   // Generate Sample Presets
-  const handleLoadSample = (sampleType: string) => {
+  const handleLoadSample = useCallback((sampleType: string) => {
     const canvas = document.createElement('canvas');
     canvas.width = 400;
     canvas.height = 400;
@@ -218,7 +274,7 @@ export default function Home() {
       ctx.fillRect(157, 182, 6, 26);
       ctx.fillRect(237, 182, 6, 26);
 
-      // Cyber Visor Lines
+      // Whiskers
       ctx.strokeStyle = '#00f0ff';
       ctx.lineWidth = 4;
       ctx.beginPath();
@@ -262,7 +318,6 @@ export default function Home() {
         ctx.stroke();
       }
     } else if (sampleType === 'synthwave') {
-      // Synthwave Sunset & Sun Grid
       const sky = ctx.createLinearGradient(0, 0, 0, 400);
       sky.addColorStop(0, '#0d0221');
       sky.addColorStop(0.6, '#261447');
@@ -270,7 +325,6 @@ export default function Home() {
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, 400, 400);
 
-      // Glowing Sun
       const sun = ctx.createRadialGradient(200, 220, 20, 200, 220, 90);
       sun.addColorStop(0, '#ffe600');
       sun.addColorStop(0.7, '#ff0055');
@@ -280,13 +334,11 @@ export default function Home() {
       ctx.arc(200, 220, 90, 0, Math.PI * 2);
       ctx.fill();
 
-      // Sun horizontal slice lines
       ctx.fillStyle = '#0d0221';
       for (let y = 170; y <= 270; y += 14) {
         ctx.fillRect(100, y, 200, (y - 150) * 0.08 + 2);
       }
     } else {
-      // Matrix Grid
       ctx.fillStyle = '#001100';
       ctx.fillRect(0, 0, 400, 400);
       const grad = ctx.createRadialGradient(200, 200, 20, 200, 200, 180);
@@ -304,20 +356,32 @@ export default function Home() {
     }
 
     handleImageLoaded(canvas);
-  };
+  }, [handleImageLoaded]);
 
   // Load default sample on mount
   useEffect(() => {
     handleLoadSample('cyber-cat');
-  }, []);
+  }, [handleLoadSample]);
+
+  // Global Drag and Drop Handler
+  const handleGlobalDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
 
   return (
-    <div className={`cyber-app-shell ${crtEnabled ? 'crt-active' : ''}`}>
-      {/* CRT Scanline Overlay */}
+    <div
+      className={`cyber-app-shell ${crtEnabled ? 'crt-active' : ''}`}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleGlobalDrop}
+    >
+      {/* CRT Scanline Shader Overlay */}
       <div className="crt-scanlines-overlay" />
       <div className="crt-glow-bloom" />
 
-      {/* Main Header */}
+      {/* Top Header */}
       <Header
         mode={mode}
         setMode={setMode}
@@ -328,50 +392,44 @@ export default function Home() {
         onLoadSample={handleLoadSample}
       />
 
-      {/* 2-Column Main Workspace */}
-      <main className="cyber-studio-layout">
-        {/* Left Side: Inputs & Sliders */}
-        <aside className="studio-sidebar">
-          <SourceSelector
-            sourceType={sourceType}
-            setSourceType={setSourceType}
-            onImageLoaded={handleImageLoaded}
-            previewUrl={previewUrl}
-            onClearImage={handleClearImage}
-            webcamMirrored={webcamMirrored}
-            setWebcamMirrored={setWebcamMirrored}
-            onWebcamFrame={handleWebcamFrame}
-          />
+      {/* Main Full-Screen Hero Viewport with Top-Right PiP */}
+      <main className="cyber-fullscreen-viewport">
+        <Viewport
+          options={options}
+          canvasRef={targetCanvasRef}
+          sourceCanvasRef={sourceCanvasRef}
+          stats={stats}
+        />
 
-          <ControlDeck
-            options={options}
-            setOptions={setOptions}
-          />
-        </aside>
-
-        {/* Right Side: Viewport & Export Toolbar */}
-        <section className="studio-stage">
-          <Viewport
-            options={options}
-            canvasRef={targetCanvasRef}
-            sourceCanvasRef={sourceCanvasRef}
-            stats={stats}
-          />
-
-          <ExportToolbar
-            options={options}
-            canvasRef={targetCanvasRef}
-            plainText={plainText}
-            htmlContent={htmlContent}
-            onToast={showToast}
-          />
-        </section>
+        {/* Floating Top-Right Picture-in-Picture Original View */}
+        <OriginalImagePiP
+          previewUrl={previewUrl}
+          sourceType={sourceType}
+          onClearImage={handleClearImage}
+          onUploadClick={() => {}}
+          webcamMirrored={webcamMirrored}
+          setWebcamMirrored={setWebcamMirrored}
+          videoRef={videoRef}
+        />
       </main>
+
+      {/* Bottom Control Dock (Consolidated Controls & Exports) */}
+      <BottomControlDock
+        options={options}
+        setOptions={setOptions}
+        sourceType={sourceType}
+        setSourceType={setSourceType}
+        onFileUpload={handleFileUpload}
+        canvasRef={targetCanvasRef}
+        plainText={plainText}
+        htmlContent={htmlContent}
+        onToast={showToast}
+      />
 
       {/* Toast Alert Notification */}
       {toastMsg && (
         <div className="cyber-toast-alert">
-          <CheckCircle2 className="w-5 h-5 text-green-400" />
+          <CheckCircle2 className="w-4 h-4 text-green-400" />
           <span>{toastMsg}</span>
         </div>
       )}
