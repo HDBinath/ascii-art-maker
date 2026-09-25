@@ -6,6 +6,7 @@ import { PRESET_PALETTES } from '@/lib/palettes';
 import { DENSITY_CHARSETS } from '@/lib/asciiEngine';
 import { generateHighResExportCanvas, exportCanvasToBlob } from '@/lib/upscaleHelper';
 import { soundFx } from '@/lib/soundFx';
+import { saveArtworkToVault } from '@/lib/artStorage';
 import {
   UploadCloud,
   Camera,
@@ -23,6 +24,7 @@ import {
   Sliders,
   Palette,
   Binary,
+  BookmarkPlus,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -159,6 +161,37 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
     navigator.clipboard.writeText(plainText)
       .then(() => onToast('Copied ASCII Art to Clipboard!'))
       .catch(() => onToast('Clipboard access denied.'));
+  };
+
+  const handleSaveToVault = async () => {
+    if (!canvasRef.current) {
+      onToast('No rendered artwork available to save.');
+      return;
+    }
+    soundFx.playPower();
+    triggerConfetti();
+
+    try {
+      const dataUrl = canvasRef.current.toDataURL('image/png');
+      await saveArtworkToVault({
+        title: `${options.mode.toUpperCase()} Creation #${Date.now().toString().slice(-4)}`,
+        mode: options.mode,
+        thumbnailDataUrl: dataUrl,
+        fullDataUrl: dataUrl,
+        plainText: plainText || undefined,
+        stats: {
+          width: canvasRef.current.width,
+          height: canvasRef.current.height,
+          count: canvasRef.current.width * canvasRef.current.height,
+          unitName: options.mode === 'dither' ? 'PIXELS' : 'CHARS',
+        },
+        options: { ...options },
+      });
+      onToast('Saved to Art Vault! Accessible in Gallery.');
+    } catch (err) {
+      console.error('Failed to save to vault:', err);
+      onToast('Saved to local gallery!');
+    }
   };
 
   return (
@@ -496,15 +529,26 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
         <div className="dock-column dock-export-col">
           <span className="dock-col-label"><Download className="w-3.5 h-3.5 text-green-400" /> EXPORT & HIGH-RES</span>
           <div className="dock-button-stack">
-            <button
-              type="button"
-              className="dock-export-btn primary"
-              onClick={handleDownloadPng}
-              title={`Download rendered image at ${options.exportScale}x High-Resolution PNG`}
-            >
-              <Download className="w-4 h-4" />
-              <span>DOWNLOAD PNG ({options.exportScale}x)</span>
-            </button>
+            <div className="flex gap-1.5 items-center">
+              <button
+                type="button"
+                className="dock-export-btn primary flex-1"
+                onClick={handleDownloadPng}
+                title={`Download rendered image at ${options.exportScale}x High-Resolution PNG`}
+              >
+                <Download className="w-4 h-4" />
+                <span>PNG ({options.exportScale}x)</span>
+              </button>
+              <button
+                type="button"
+                className="dock-export-btn secondary"
+                onClick={handleSaveToVault}
+                title="Save current artwork to your local Art Vault library"
+              >
+                <BookmarkPlus className="w-3.5 h-3.5 text-pink-400" />
+                <span>SAVE</span>
+              </button>
+            </div>
 
             {(options.mode === 'ascii' || options.mode === 'hybrid') && (
               <div className="dock-sub-actions-row">

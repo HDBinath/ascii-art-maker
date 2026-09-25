@@ -441,44 +441,6 @@
       color: #cccccc;
     }
 
-    .showcase-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .showcase-media-box {
-      position: relative;
-      background: #0d0d0d;
-      border: 1px solid var(--border-medium);
-      border-radius: 20px;
-      overflow: hidden;
-      aspect-ratio: 4 / 3;
-    }
-
-    .showcase-media-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-    .showcase-floating-hud {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      padding: 12px 18px;
-      background: rgba(22, 22, 22, 0.85);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      backdrop-filter: blur(16px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .showcase-content-details { display: flex; flex-direction: column; gap: 20px; }
-    .showcase-item { padding: 18px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); }
-    .showcase-item-title { font-size: 16px; font-weight: 500; color: #ffffff; margin-bottom: 4px; }
-    .showcase-item-desc { font-size: 13px; color: #888888; line-height: 1.5; }
-
     .workflow-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     .workflow-card { background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 32px 24px; display: flex; flex-direction: column; gap: 16px; }
     .workflow-card-step { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #ffffff; color: #161616; font-weight: 700; font-size: 14px; }
@@ -580,7 +542,7 @@
 
     @media (max-width: 900px) {
       .primary-nav, .secure-pill, .sticky-nav-links { display: none; }
-      .showcase-container, .workflow-grid { grid-template-columns: 1fr; }
+      .workflow-grid { grid-template-columns: 1fr; }
       .orbit-footer { flex-direction: column; gap: 16px; text-align: center; }
     }
   </style>
@@ -602,9 +564,9 @@
     </a>
     <ul class="sticky-nav-links">
       <li><a href="#home">Home</a></li>
-      <li><a href="#resources">Resources</a></li>
-      <li><a href="#benefits">Benefits</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#engines">Engines</a></li>
+      <li><a href="./studio">Studio</a></li>
     </ul>
     <a href="./studio" class="sticky-launch-btn">Launch Studio →</a>
   </header>
@@ -623,9 +585,9 @@
 
       <ul class="primary-nav">
         <li class="nav-home"><a href="#home">Home</a></li>
-        <li class="nav-resources"><a href="#resources">Resources</a></li>
-        <li class="nav-benefits"><a href="#benefits">Benefits</a></li>
-        <li class="nav-contact"><a href="#contact">Contact</a></li>
+        <li class="nav-resources"><a href="#gallery">Gallery</a></li>
+        <li class="nav-benefits"><a href="#engines">Engines</a></li>
+        <li class="nav-contact"><a href="./studio">Studio</a></li>
       </ul>
 
       <a href="./studio" class="secure-pill" id="secure-pill">
@@ -651,19 +613,20 @@
         </div>
       </div>
 
+      <!-- Tailored Generative ASCII & Dither Art Copy -->
       <p class="support-copy support-copy--left">
         <span class="support-copy__inner">
-          Every workflow,<br>intelligently connected.
+          Sub-pixel luminance,<br>mathematically rendered.
         </span>
       </p>
 
       <p class="support-copy support-copy--right">
         <span class="support-copy__inner">
-          Less manual work.<br>More meaningful output.
+          Every character matrix,<br>infinitely scalable.
         </span>
       </p>
 
-      <a href="#resources" class="hero-scroll-prompt">
+      <a href="#gallery" class="hero-scroll-prompt">
         <div class="scroll-mouse-icon">
           <div class="scroll-wheel-dot"></div>
         </div>
@@ -672,10 +635,23 @@
     </section>
   </div>
 
-  <!-- 2. RESOURCES SECTION -->
-  <section class="content-section" id="resources">
+  <!-- 2. GALLERY / VAULT SECTION -->
+  <section class="content-section" id="gallery">
     <div class="section-header">
-      <span class="section-tag">01 // ALGORITHMIC ENGINES</span>
+      <span class="section-tag">01 // ART VAULT</span>
+      <h2 class="section-title">
+        Your Saved <span className="section-title-gradient">Creations & Masters</span>
+      </h2>
+      <p class="section-desc">
+        All rendered ASCII typography and dithered artworks saved directly to your browser's private local vault. Zero cloud uploads, unlimited high-resolution retention.
+      </p>
+    </div>
+  </section>
+
+  <!-- 3. ENGINES SECTION -->
+  <section class="content-section" id="engines">
+    <div class="section-header">
+      <span class="section-tag">02 // ALGORITHMIC ENGINES</span>
       <h2 class="section-title">
         Computational Artistry <span class="section-title-gradient">Engineered at Scale</span>
       </h2>
@@ -743,40 +719,6 @@
     </div>
   </section>
 
-  <!-- 3. BENEFITS SECTION -->
-  <section class="content-section" id="benefits">
-    <div class="section-header">
-      <span class="section-tag">02 // RETRO PALETTES & PHOSPHORS</span>
-      <h2 class="section-title">
-        Curated Color Systems <span class="section-title-gradient">from Vintage Eras</span>
-      </h2>
-      <p class="section-desc">
-        Quantize full-color imagery against 10 legendary hardware palettes, from Game Boy 4-shade green to Commodore 64 and Synthwave cyber aesthetics.
-      </p>
-    </div>
-
-    <div class="showcase-container">
-      <div class="showcase-media-box">
-        <img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260808_192942_e1086505-d7da-433b-a59b-8220f4e6c808.png&w=1280&q=85" alt="" class="showcase-media-img">
-      </div>
-
-      <div class="showcase-content-details">
-        <div class="showcase-item">
-          <h4 class="showcase-item-title">10 Curated Vintage Palettes</h4>
-          <p class="showcase-item-desc">Game Boy DMG, Commodore 64, PICO-8, Macintosh 1-bit, Cyberpunk Neon, Amber Phosphor, CGA Mode 1, and True Color quantization.</p>
-        </div>
-        <div class="showcase-item">
-          <h4 class="showcase-item-title">Dynamic Contrast & Gain Calibration</h4>
-          <p class="showcase-item-desc">Tune luminance curves, brightness thresholds, negative inversion, and error diffusion strength in real-time before rasterization.</p>
-        </div>
-        <div class="showcase-item">
-          <h4 class="showcase-item-title">Authentic CRT Phosphor Glow & Scanlines</h4>
-          <p class="showcase-item-desc">Simulate vintage cathode-ray tube raster lines, ambient bloom, and Web Audio synthesized keyboard SFX for deep tactile immersion.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- 4. WORKFLOW SECTION -->
   <section class="content-section">
     <div class="section-header">
@@ -799,14 +741,14 @@
       </div>
       <div class="workflow-card">
         <div class="workflow-card-step">3</div>
-        <h3 class="workflow-card-title">Export Lossless Masters</h3>
-        <p class="workflow-card-text">Instantly download uncompressed 4K or 8K UHD PNG files, copy formatted plain text ASCII, or export responsive HTML code.</p>
+        <h3 class="workflow-card-title">Save & Export Masters</h3>
+        <p class="workflow-card-text">Save directly to your local Art Vault library or download uncompressed 4K or 8K UHD PNG files.</p>
       </div>
     </div>
   </section>
 
   <!-- 5. CTA SECTION -->
-  <div class="cta-section-wrapper" id="contact">
+  <div class="cta-section-wrapper">
     <h2 class="cta-heading">
       Create Art from <span class="section-title-gradient">Pixels & Typography</span>
     </h2>
@@ -820,6 +762,7 @@
     <span>ORBIT STUDIO // NEURAL ASCII & DITHER MATRIX GENERATOR</span>
     <div class="footer-links">
       <a href="#home">Back to Top ↑</a>
+      <a href="#gallery">Vault Gallery</a>
       <a href="./studio">Open Studio</a>
     </div>
   </footer>

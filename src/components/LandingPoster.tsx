@@ -16,7 +16,13 @@ import {
   Palette,
   Binary,
   Download,
+  BookmarkPlus,
+  Trash2,
+  Copy,
+  ExternalLink,
+  Eye,
 } from 'lucide-react';
+import { getAllSavedArtworks, deleteArtworkFromVault, SavedArtwork } from '@/lib/artStorage';
 import './landingPoster.css';
 
 const FRONT_LILY_URL =
@@ -48,6 +54,11 @@ export const LandingPoster: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [pillText, setPillText] = useState<string>('Launch Studio');
 
+  // Vault Artworks State
+  const [savedArtworks, setSavedArtworks] = useState<SavedArtwork[]>([]);
+  const [previewModalArt, setPreviewModalArt] = useState<SavedArtwork | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
   const stageRef = useRef<HTMLElement | null>(null);
   const flowerRef = useRef<HTMLDivElement | null>(null);
   const bgLayerRef = useRef<HTMLDivElement | null>(null);
@@ -66,6 +77,51 @@ export const LandingPoster: React.FC = () => {
   const timeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
 
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
+  };
+
+  // Load Saved Artworks from IndexedDB
+  const refreshGallery = useCallback(async () => {
+    try {
+      const items = await getAllSavedArtworks();
+      setSavedArtworks(items);
+    } catch {
+      setSavedArtworks([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshGallery();
+  }, [refreshGallery]);
+
+  const handleDeleteArt = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await deleteArtworkFromVault(id);
+    await refreshGallery();
+    showToast('Artwork removed from Vault');
+  };
+
+  const handleDownloadSavedPng = (art: SavedArtwork, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const link = document.createElement('a');
+    link.href = art.fullDataUrl || art.thumbnailDataUrl;
+    link.download = `orbit_${art.mode}_${art.id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('PNG Downloaded!');
+  };
+
+  const handleCopySavedText = (art: SavedArtwork, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (art.plainText) {
+      navigator.clipboard.writeText(art.plainText);
+      showToast('Copied ASCII text to clipboard!');
+    }
+  };
+
   // Remove .anim class after entrance choreography
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -83,16 +139,17 @@ export const LandingPoster: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Keyboard accessibility for mobile sheet
+  // Keyboard accessibility for mobile sheet and preview modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && menuOpen) {
-        setMenuOpen(false);
+      if (e.key === 'Escape') {
+        if (previewModalArt) setPreviewModalArt(null);
+        if (menuOpen) setMenuOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen]);
+  }, [menuOpen, previewModalArt]);
 
   // Blob drawing with 3-frequency harmonic noise & quadratic bezier curves
   const drawMorphBlob = useCallback((
@@ -314,9 +371,9 @@ export const LandingPoster: React.FC = () => {
 
         <ul className="sticky-nav-links">
           <li><a href="#home">Home</a></li>
-          <li><a href="#resources">Resources</a></li>
-          <li><a href="#benefits">Benefits</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#engines">Engines</a></li>
+          <li><Link href="/studio">Studio</Link></li>
         </ul>
 
         <button
@@ -356,13 +413,13 @@ export const LandingPoster: React.FC = () => {
               <a href="#home">Home</a>
             </li>
             <li className="nav-item-resources">
-              <a href="#resources">Resources</a>
+              <a href="#gallery">Gallery</a>
             </li>
             <li className="nav-item-benefits">
-              <a href="#benefits">Benefits</a>
+              <a href="#engines">Engines</a>
             </li>
             <li className="nav-item-contact">
-              <a href="#contact">Contact</a>
+              <Link href="/studio">Studio</Link>
             </li>
           </ul>
 
@@ -410,22 +467,22 @@ export const LandingPoster: React.FC = () => {
             </div>
           </div>
 
-          {/* Left Corner Copy */}
+          {/* Left Corner Copy - Tailored for Generative ASCII & Dither Art */}
           <p className="support-copy support-copy--left">
             <span className="support-copy__inner">
-              Every workflow,<br />intelligently connected.
+              Sub-pixel luminance,<br />mathematically rendered.
             </span>
           </p>
 
-          {/* Right Corner Copy */}
+          {/* Right Corner Copy - Tailored for Matrix Typography */}
           <p className="support-copy support-copy--right">
             <span className="support-copy__inner">
-              Less manual work.<br />More meaningful output.
+              Every character matrix,<br />infinitely scalable.
             </span>
           </p>
 
           {/* Scroll Prompt */}
-          <a href="#resources" className="hero-scroll-prompt" aria-label="Scroll down to explore">
+          <a href="#gallery" className="hero-scroll-prompt" aria-label="Scroll down to explore gallery">
             <div className="scroll-mouse-icon">
               <div className="scroll-wheel-dot" />
             </div>
@@ -458,9 +515,9 @@ export const LandingPoster: React.FC = () => {
           <div className={`mobile-sheet ${menuOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
             <nav className="mobile-nav-links">
               <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
-              <a href="#resources" onClick={() => setMenuOpen(false)}>Resources</a>
-              <a href="#benefits" onClick={() => setMenuOpen(false)}>Benefits</a>
-              <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
+              <a href="#gallery" onClick={() => setMenuOpen(false)}>Gallery</a>
+              <a href="#engines" onClick={() => setMenuOpen(false)}>Engines</a>
+              <Link href="/studio" onClick={() => setMenuOpen(false)}>Studio</Link>
             </nav>
 
             <button
@@ -478,11 +535,97 @@ export const LandingPoster: React.FC = () => {
       </div>
 
       {/* ====================================================================
-          2. CORE ENGINES & CAPABILITIES (#resources)
+          2. SAVED CREATIONS & ART VAULT GALLERY SECTION (#gallery)
           ==================================================================== */}
-      <section className="content-section" id="resources">
+      <section className="content-section" id="gallery">
+        <div className="section-header flex justify-between items-end flex-wrap gap-4">
+          <div>
+            <span className="section-tag">01 // ART VAULT</span>
+            <h2 className="section-title">
+              Your Saved <span className="section-title-gradient">Creations & Masters</span>
+            </h2>
+            <p className="section-desc">
+              All rendered ASCII typography and dithered artworks saved directly to your browser's private local vault. Zero cloud uploads, unlimited high-resolution retention.
+            </p>
+          </div>
+          <Link href="/studio" className="btn-vault-action-primary">
+            <BookmarkPlus className="w-4 h-4" />
+            <span>Create New in Studio</span>
+          </Link>
+        </div>
+
+        {savedArtworks.length > 0 ? (
+          <div className="gallery-card-grid">
+            {savedArtworks.map((art) => (
+              <div key={art.id} className="vault-art-card" onClick={() => setPreviewModalArt(art)}>
+                <div className="vault-art-thumb-wrapper">
+                  <img src={art.thumbnailDataUrl} alt={art.title} className="vault-art-thumb" />
+                  <div className="vault-art-overlay">
+                    <button
+                      type="button"
+                      className="btn-vault-icon"
+                      onClick={(e) => handleDownloadSavedPng(art, e)}
+                      title="Download PNG"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    {art.plainText && (
+                      <button
+                        type="button"
+                        className="btn-vault-icon"
+                        onClick={(e) => handleCopySavedText(art, e)}
+                        title="Copy ASCII Text"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn-vault-icon danger"
+                      onClick={(e) => handleDeleteArt(art.id, e)}
+                      title="Delete Artwork"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <span className="vault-mode-badge">{art.mode.toUpperCase()}</span>
+                </div>
+
+                <div className="vault-art-info">
+                  <h4 className="vault-art-title">{art.title}</h4>
+                  <div className="vault-art-meta">
+                    <span>{art.stats.width} × {art.stats.height} {art.stats.unitName}</span>
+                    <span>{new Date(art.timestamp).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="vault-empty-showcase">
+            <div className="vault-empty-card">
+              <div className="vault-empty-icon-ring">
+                <BookmarkPlus className="w-8 h-8 text-pink-400" />
+              </div>
+              <h3 className="vault-empty-title">Your Art Vault is Empty</h3>
+              <p className="vault-empty-desc">
+                Launch the studio to generate your first ASCII art or dithered pixel transformation and hit <strong>SAVE</strong> in the export dock.
+              </p>
+              <Link href="/studio" className="btn-cta-launch-sm">
+                <span>Open Studio to Generate</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ====================================================================
+          3. CORE ENGINES & MODES SECTION (#engines)
+          ==================================================================== */}
+      <section className="content-section" id="engines">
         <div className="section-header">
-          <span className="section-tag">01 // ALGORITHMIC ENGINES</span>
+          <span className="section-tag">02 // ALGORITHMIC ENGINES</span>
           <h2 className="section-title">
             Computational Artistry <span className="section-title-gradient">Engineered at Scale</span>
           </h2>
@@ -571,78 +714,6 @@ export const LandingPoster: React.FC = () => {
       </section>
 
       {/* ====================================================================
-          3. LIVE SHOWCASE & RETRO PALETTES (#benefits)
-          ==================================================================== */}
-      <section className="content-section" id="benefits">
-        <div className="section-header">
-          <span className="section-tag">02 // RETRO PALETTES & PHOSPHORS</span>
-          <h2 className="section-title">
-            Curated Color Systems <span className="section-title-gradient">from Vintage Eras</span>
-          </h2>
-          <p className="section-desc">
-            Quantize full-color imagery against 10 legendary hardware palettes, from Game Boy 4-shade green to Commodore 64 and Synthwave cyber aesthetics.
-          </p>
-        </div>
-
-        <div className="showcase-container">
-          {/* Visual Media Box */}
-          <div className="showcase-media-box">
-            <img
-              src={FRONT_LILY_URL}
-              alt="Pixel art showcase"
-              className="showcase-media-img"
-            />
-            <div className="showcase-floating-hud">
-              <div className="showcase-hud-info">
-                <span className="showcase-hud-label">ATKINSON // GAMEBOY 4-SHADE</span>
-                <span className="showcase-hud-sub">QUANTIZATION MATRIX: ACTIVE</span>
-              </div>
-              <span className="card-badge">4-COLOR DMG</span>
-            </div>
-          </div>
-
-          {/* Details List */}
-          <div className="showcase-content-details">
-            <div className="showcase-item">
-              <div className="showcase-item-icon">
-                <Palette className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="showcase-item-title">10 Curated Vintage Palettes</h4>
-                <p className="showcase-item-desc">
-                  Game Boy DMG, Commodore 64, PICO-8, Macintosh 1-bit, Cyberpunk Neon, Amber Phosphor, CGA Mode 1, and True Color quantization.
-                </p>
-              </div>
-            </div>
-
-            <div className="showcase-item">
-              <div className="showcase-item-icon">
-                <Sliders className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="showcase-item-title">Dynamic Contrast & Gain Calibration</h4>
-                <p className="showcase-item-desc">
-                  Tune luminance curves, brightness thresholds, negative inversion, and error diffusion strength in real-time before rasterization.
-                </p>
-              </div>
-            </div>
-
-            <div className="showcase-item">
-              <div className="showcase-item-icon">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="showcase-item-title">Authentic CRT Phosphor Glow & Scanlines</h4>
-                <p className="showcase-item-desc">
-                  Simulate vintage cathode-ray tube raster lines, ambient bloom, and Web Audio synthesized keyboard SFX for deep tactile immersion.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ====================================================================
           4. 3-STEP CREATIVE WORKFLOW
           ==================================================================== */}
       <section className="content-section">
@@ -675,9 +746,9 @@ export const LandingPoster: React.FC = () => {
 
           <div className="workflow-card">
             <div className="workflow-card-step">3</div>
-            <h3 className="workflow-card-title">Export Lossless Masters</h3>
+            <h3 className="workflow-card-title">Save & Export Masters</h3>
             <p className="workflow-card-text">
-              Instantly download uncompressed 4K or 8K UHD PNG files, copy formatted plain text ASCII, or export responsive HTML code.
+              Save your creation directly to your local Art Vault library or download uncompressed 4K / 8K UHD lossless PNGs.
             </p>
           </div>
         </div>
@@ -691,7 +762,7 @@ export const LandingPoster: React.FC = () => {
           <div className="tech-stat-unit">
             <span className="tech-stat-value">100%</span>
             <span className="tech-stat-label">Local Compute</span>
-            <span className="tech-stat-sub">Zero images uploaded to servers. All pixel processing occurs client-side.</span>
+            <span className="tech-stat-sub">Zero images uploaded to servers. All pixel processing occurs client-side in browser memory.</span>
           </div>
 
           <div className="tech-stat-unit">
@@ -707,17 +778,17 @@ export const LandingPoster: React.FC = () => {
           </div>
 
           <div className="tech-stat-unit">
-            <span className="tech-stat-value">0 Cloud Dep</span>
-            <span className="tech-stat-label">Offline Ready</span>
-            <span className="tech-stat-sub">Fully functional offline with Web Audio synthesized soundscapes.</span>
+            <span className="tech-stat-value">IndexedDB</span>
+            <span className="tech-stat-label">Local Vault Storage</span>
+            <span className="tech-stat-sub">Persistent offline library of your generated artworks and exact parameters.</span>
           </div>
         </div>
       </section>
 
       {/* ====================================================================
-          6. FINAL CALL TO ACTION & FOOTER (#contact)
+          6. FINAL CALL TO ACTION & FOOTER
           ==================================================================== */}
-      <div className="cta-section-wrapper" id="contact">
+      <div className="cta-section-wrapper">
         <svg className="cta-asterisk" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
           <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
@@ -729,7 +800,7 @@ export const LandingPoster: React.FC = () => {
           Create Art from <span className="section-title-gradient">Pixels & Typography</span>
         </h2>
         <p className="cta-sub">
-          Launch the full-screen studio now. No accounts required, completely private and free.
+          Launch the full-screen studio now. No accounts required, completely private, offline-ready, and free.
         </p>
 
         <button
@@ -755,9 +826,72 @@ export const LandingPoster: React.FC = () => {
         </div>
         <div className="footer-links">
           <a href="#home">Back to Top ↑</a>
+          <a href="#gallery">Vault Gallery</a>
           <Link href="/studio">Open Studio</Link>
         </div>
       </footer>
+
+      {/* Preview Modal for Saved Works */}
+      {previewModalArt && (
+        <div className="vault-modal-backdrop" onClick={() => setPreviewModalArt(null)}>
+          <div className="vault-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="vault-modal-header">
+              <div className="flex items-center gap-2">
+                <span className="vault-mode-badge">{previewModalArt.mode.toUpperCase()}</span>
+                <h3 className="text-white font-medium text-base">{previewModalArt.title}</h3>
+              </div>
+              <button
+                type="button"
+                className="btn-vault-icon"
+                onClick={() => setPreviewModalArt(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="vault-modal-body">
+              <img
+                src={previewModalArt.fullDataUrl || previewModalArt.thumbnailDataUrl}
+                alt={previewModalArt.title}
+                className="vault-modal-preview-img"
+              />
+            </div>
+
+            <div className="vault-modal-footer">
+              <div className="text-xs text-neutral-400">
+                {previewModalArt.stats.width} × {previewModalArt.stats.height} {previewModalArt.stats.unitName}
+              </div>
+              <div className="flex items-center gap-2">
+                {previewModalArt.plainText && (
+                  <button
+                    type="button"
+                    className="btn-vault-action-secondary"
+                    onClick={(e) => handleCopySavedText(previewModalArt, e)}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Text</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-vault-action-primary"
+                  onClick={(e) => handleDownloadSavedPng(previewModalArt, e)}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download PNG</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="cyber-toast-alert">
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };
