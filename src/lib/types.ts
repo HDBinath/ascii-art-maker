@@ -17,7 +17,6 @@ export type CharsetName =
   | 'blocks'
   | 'binary'
   | 'detailed'
-  | 'braille'
   | 'matrix'
   | 'custom';
 

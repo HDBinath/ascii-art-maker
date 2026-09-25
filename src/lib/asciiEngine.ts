@@ -6,7 +6,6 @@ export const DENSITY_CHARSETS: Record<CharsetName, string> = {
   blocks: " ░▒▓█",
   binary: " 01",
   detailed: " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
-  braille: " ⠁⠃⠇⠧⠷⠿",
   matrix: " 0123456789ABCDEF$#@",
   custom: " .:-=+*#%@",
 };

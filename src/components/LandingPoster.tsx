@@ -644,11 +644,11 @@ export const LandingPoster: React.FC = () => {
               </div>
               <h3 className="card-title">Neural ASCII Matrix</h3>
               <p className="card-text">
-                Sub-pixel brightness mapping across 8 distinct density character sets (Cyberpunk, Matrix, Braille, Binary, and Classic block ramps) with font aspect ratio compensation.
+                Sub-pixel brightness mapping across 7 distinct density character sets (Cyberpunk, Matrix, Binary, and Classic block ramps) with font aspect ratio compensation.
               </p>
             </div>
             <div className="card-badges">
-              <span className="card-badge">8 Charsets</span>
+              <span className="card-badge">7 Charsets</span>
               <span className="card-badge">Aspect Sync</span>
               <span className="card-badge">HTML Exporter</span>
             </div>
