@@ -4,7 +4,7 @@ import React, { useRef } from 'react';
 import { AppOptions, CharsetName, DitherAlgorithm, PaletteName, UpscaleMode } from '@/lib/types';
 import { PRESET_PALETTES } from '@/lib/palettes';
 import { DENSITY_CHARSETS } from '@/lib/asciiEngine';
-import { generateHighResExportCanvas } from '@/lib/upscaleHelper';
+import { generateHighResExportCanvas, exportCanvasToBlob } from '@/lib/upscaleHelper';
 import { soundFx } from '@/lib/soundFx';
 import {
   UploadCloud,
@@ -80,23 +80,33 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
     } catch {}
   };
 
-  const handleDownloadPng = () => {
+  const handleDownloadPng = async () => {
     if (!canvasRef.current) return;
     soundFx.playScan();
     triggerConfetti();
+    onToast(`Generating ${options.exportScale}x High-Res PNG...`);
 
-    // Generate high-resolution export canvas scaled by options.exportScale
-    const exportCanvas = generateHighResExportCanvas(canvasRef.current, options.exportScale);
-    const dataUrl = exportCanvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    const scaleLabel = options.exportScale > 1 ? `_${options.exportScale}x_HD` : '';
-    link.download = `cyber_${options.mode}${scaleLabel}_${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // Generate high-resolution export canvas scaled by options.exportScale (up to 8K)
+      const exportCanvas = generateHighResExportCanvas(canvasRef.current, options.exportScale);
+      const blob = await exportCanvasToBlob(exportCanvas);
 
-    onToast(`PNG Downloaded (${options.exportScale}x Resolution: ${exportCanvas.width}×${exportCanvas.height}px)!`);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const scaleLabel = options.exportScale > 1 ? `_${options.exportScale}x_HD` : '';
+      link.download = `cyber_${options.mode}${scaleLabel}_${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      const fileSizeMb = (blob.size / (1024 * 1024)).toFixed(2);
+      onToast(`PNG Downloaded (${options.exportScale}x: ${exportCanvas.width}×${exportCanvas.height}px, ${fileSizeMb} MB)!`);
+    } catch (err) {
+      console.error('High-res export failed:', err);
+      onToast('Export failed: Image resolution exceeds system memory.');
+    }
   };
 
   const handleDownloadTxt = () => {
