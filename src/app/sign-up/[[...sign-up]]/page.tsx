@@ -2,6 +2,10 @@ import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 import { ArrowLeft, Terminal } from "lucide-react";
 
+export function generateStaticParams() {
+  return [{ 'sign-up': [] }];
+}
+
 export default function SignUpPage() {
   return (
     <div className="auth-page-wrapper">
@@ -28,6 +32,7 @@ export default function SignUpPage() {
     </div>
   );
 }
+
 
 
 

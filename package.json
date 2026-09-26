@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "deploy": "wrangler deploy",
+    "build:worker": "opennextjs-cloudflare build",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy",
     "start": "next start",
     "lint": "eslint"
   },
@@ -14,6 +15,7 @@
     "@clerk/themes": "^2.4.57",
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
+    "@opennextjs/cloudflare": "^1.20.6",
     "@types/canvas-confetti": "^1.9.0",
     "canvas-confetti": "^1.9.4",
     "lucide-react": "^1.48.0",
