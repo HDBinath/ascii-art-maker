@@ -5,7 +5,7 @@ import { AppMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
 import Link from 'next/link';
 import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft, LogIn, UserPlus } from 'lucide-react';
-import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
+import { Show, UserButton } from '@clerk/nextjs';
 
 interface HeaderProps {
   mode: AppMode;
@@ -121,18 +121,14 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Clerk Auth Section */}
         <div className="header-auth-container flex items-center gap-2 ml-1">
           <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button type="button" className="btn-utility auth-btn-login" title="Sign In">
-                <LogIn className="w-3.5 h-3.5" />
-                <span>Sign In</span>
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button type="button" className="btn-utility auth-btn-register" title="Sign Up">
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>Sign Up</span>
-              </button>
-            </SignUpButton>
+            <Link href="/sign-in" className="btn-utility auth-btn-login" title="Sign In">
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </Link>
+            <Link href="/sign-up" className="btn-utility auth-btn-register" title="Sign Up">
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Sign Up</span>
+            </Link>
           </Show>
           <Show when="signed-in">
             <div className="cyber-user-button-wrap flex items-center">

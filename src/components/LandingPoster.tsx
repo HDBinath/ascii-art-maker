@@ -23,7 +23,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { getAllSavedArtworks, deleteArtworkFromVault, SavedArtwork } from '@/lib/artStorage';
-import { SignInButton, SignUpButton, Show, UserButton, useAuth, useClerk } from '@clerk/nextjs';
+import { Show, UserButton, useAuth } from '@clerk/nextjs';
 import './landingPoster.css';
 
 const FRONT_LILY_URL =
@@ -51,7 +51,6 @@ interface TrailPoint {
 export const LandingPoster: React.FC = () => {
   const router = useRouter();
   const { isSignedIn } = useAuth();
-  const { openSignIn } = useClerk();
   const [isAnim, setIsAnim] = useState<boolean>(true);
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
@@ -383,10 +382,7 @@ export const LandingPoster: React.FC = () => {
       setPillText('Opening Studio...');
       router.push('/studio');
     } else {
-      openSignIn({
-        fallbackRedirectUrl: '/studio',
-        forceRedirectUrl: '/studio',
-      });
+      router.push('/sign-in');
     }
   };
 
@@ -422,12 +418,12 @@ export const LandingPoster: React.FC = () => {
 
         <div className="sticky-actions-group">
           <Show when="signed-out">
-            <SignInButton mode="modal" forceRedirectUrl="/studio">
-              <button type="button" className="sticky-auth-btn-ghost">Sign In</button>
-            </SignInButton>
-            <SignUpButton mode="modal" forceRedirectUrl="/studio">
-              <button type="button" className="sticky-auth-btn-pill">Sign Up</button>
-            </SignUpButton>
+            <Link href="/sign-in" className="sticky-auth-btn-ghost">
+              Sign In
+            </Link>
+            <Link href="/sign-up" className="sticky-auth-btn-pill">
+              Sign Up
+            </Link>
           </Show>
           <Show when="signed-in">
             <UserButton />
@@ -479,12 +475,12 @@ export const LandingPoster: React.FC = () => {
             <div className="hero-header-right">
               <Show when="signed-out">
                 <div className="hero-auth-group">
-                  <SignInButton mode="modal" forceRedirectUrl="/studio">
-                    <button type="button" className="hero-auth-btn-ghost">Sign In</button>
-                  </SignInButton>
-                  <SignUpButton mode="modal" forceRedirectUrl="/studio">
-                    <button type="button" className="hero-auth-btn-pill">Sign Up</button>
-                  </SignUpButton>
+                  <Link href="/sign-in" className="hero-auth-btn-ghost">
+                    Sign In
+                  </Link>
+                  <Link href="/sign-up" className="hero-auth-btn-pill">
+                    Sign Up
+                  </Link>
                 </div>
               </Show>
               <Show when="signed-in">
@@ -604,16 +600,12 @@ export const LandingPoster: React.FC = () => {
             <div className="mobile-auth-dock">
               <Show when="signed-out">
                 <div className="mobile-auth-buttons">
-                  <SignInButton mode="modal" forceRedirectUrl="/studio">
-                    <button type="button" className="mobile-auth-btn" onClick={() => setMenuOpen(false)}>
-                      Sign In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal" forceRedirectUrl="/studio">
-                    <button type="button" className="mobile-auth-btn signup" onClick={() => setMenuOpen(false)}>
-                      Sign Up
-                    </button>
-                  </SignUpButton>
+                  <Link href="/sign-in" className="mobile-auth-btn" onClick={() => setMenuOpen(false)}>
+                    Sign In
+                  </Link>
+                  <Link href="/sign-up" className="mobile-auth-btn signup" onClick={() => setMenuOpen(false)}>
+                    Sign Up
+                  </Link>
                 </div>
               </Show>
               <Show when="signed-in">

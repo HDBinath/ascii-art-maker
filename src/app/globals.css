@@ -1224,4 +1224,116 @@ body {
   padding: 2px;
 }
 
+/* ==========================================================================
+   Dedicated Auth Page Layout & Styling (/sign-in and /sign-up)
+   ========================================================================== */
+.auth-page-wrapper {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px 40px;
+  background-color: var(--bg-space);
+  overflow: hidden;
+}
+
+.auth-ambient-glow-1 {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 550px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(253, 134, 219, 0.12) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-ambient-glow-2 {
+  position: absolute;
+  bottom: 10%;
+  right: 15%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%);
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+}
+
+.auth-return-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--text-sub);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+
+.auth-return-btn:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(-2px);
+}
+
+.auth-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.auth-brand-badge-icon {
+  color: var(--neon-pink);
+}
+
+.auth-card-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .auth-top-bar {
+    padding: 0 16px;
+    height: 60px;
+  }
+  .auth-page-wrapper {
+    padding: 70px 16px 30px;
+  }
+}
+
+
 
