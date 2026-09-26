@@ -8,6 +8,7 @@ import { OriginalImagePiP } from '@/components/OriginalImagePiP';
 import { BottomControlDock } from '@/components/BottomControlDock';
 import { processAsciiArt, generateHtmlExport } from '@/lib/asciiEngine';
 import { processDitheredPixelArt } from '@/lib/ditherEngine';
+import { processHybridArt, generateHybridHtmlExport } from '@/lib/hybridEngine';
 import { upscaleSourceCanvas } from '@/lib/upscaleHelper';
 import { soundFx } from '@/lib/soundFx';
 import { CheckCircle2 } from 'lucide-react';
@@ -26,24 +27,36 @@ export default function StudioPage() {
     mode: 'ascii',
     contrast: 1.2,
     brightness: 1.0,
+    gamma: 1.0,
     invert: false,
+    claheEnabled: false,
+    claheClipLimit: 2.0,
+    unsharpStrength: 0.0,
     upscaleFactor: 1,
     upscaleMode: 'smooth',
     exportScale: 1,
     columns: 110,
     fontSize: 12,
     aspectRatio: 0.55,
+    autoAspectRatio: true,
     charset: 'cyberpunk',
     customCharset: '',
     asciiColorMode: 'matrix',
+    sobelEdgeInjection: false,
+    sobelSensitivity: 0.5,
+    dynamicFontSort: false,
     ditherAlgorithm: 'floyd-steinberg',
     palette: 'gameboy',
     customPaletteColors: [],
     pixelSize: 4,
     ditherAmount: 1.0,
+    serpentineDither: true,
+    errorClamp: 1.0,
+    noiseDampingFloor: 0.0,
     colorDepthBits: 4,
     crtEffect: true,
     scanlines: true,
+    hybridTwoTone: true,
   });
 
   // Sync mode into options
@@ -97,9 +110,20 @@ export default function StudioPage() {
       });
       setPlainText('');
       setHtmlContent('');
+    } else if (options.mode === 'hybrid') {
+      const result = processHybridArt(srcCanvas, tgtCanvas, options);
+      if (result) {
+        setPlainText(result.text);
+        setHtmlContent(generateHybridHtmlExport(result, options.hybridTwoTone));
+        setStats({
+          width: result.cols,
+          height: result.rowsCount,
+          count: result.cols * result.rowsCount,
+          unitName: 'CELLS'
+        });
+      }
     } else {
-      const isHybrid = options.mode === 'hybrid';
-      const result = processAsciiArt(srcCanvas, tgtCanvas, options, isHybrid);
+      const result = processAsciiArt(srcCanvas, tgtCanvas, options, false);
       if (result) {
         setPlainText(result.text);
         setHtmlContent(generateHtmlExport(result, options.asciiColorMode));
@@ -107,7 +131,7 @@ export default function StudioPage() {
           width: result.cols,
           height: result.rowsCount,
           count: result.cols * result.rowsCount,
-          unitName: 'CHARS'
+          unitName: options.charset === 'braille' ? 'BRAILLE' : 'CHARS'
         });
       }
     }

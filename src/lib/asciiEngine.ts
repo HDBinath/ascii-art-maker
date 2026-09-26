@@ -1,4 +1,5 @@
 import { AppOptions, CharsetName } from './types';
+import { preprocessSignalBuffer } from './signalProcessing';
 
 export const DENSITY_CHARSETS: Record<CharsetName, string> = {
   simple: " .:-=+*#%@",
@@ -7,6 +8,7 @@ export const DENSITY_CHARSETS: Record<CharsetName, string> = {
   binary: " 01",
   detailed: " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
   matrix: " 0123456789ABCDEF$#@",
+  braille: "⠀⠁⠃⠇⠏⠟⠿⣿",
   custom: " .:-=+*#%@",
 };
 
@@ -18,16 +20,100 @@ export interface AsciiConversionResult {
   rowsCount: number;
 }
 
-export function getRamp(charset: CharsetName, customCharset: string, invert: boolean): string {
+// In-memory cache for dynamic font density profile
+const fontRampCache = new Map<string, string>();
+
+/**
+ * Auto-detect exact font width-to-height aspect ratio by measuring an offscreen glyph
+ */
+export function detectFontAspectRatio(): number {
+  if (typeof document === 'undefined') return 0.55;
+  try {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return 0.55;
+    ctx.font = "20px 'Fira Code', 'Courier New', monospace";
+    const metrics = ctx.measureText('M');
+    const width = metrics.width;
+    const ratio = width / 20;
+    return Math.max(0.35, Math.min(0.75, Number(ratio.toFixed(3))));
+  } catch {
+    return 0.55;
+  }
+}
+
+/**
+ * Measure optical fill density of each character in the current font and sort ascending
+ */
+export function profileGlyphDensity(charsetStr: string, fontName: string = "'Fira Code', monospace"): string {
+  if (typeof document === 'undefined') return charsetStr;
+  const cacheKey = `${charsetStr}_${fontName}`;
+  if (fontRampCache.has(cacheKey)) {
+    return fontRampCache.get(cacheKey)!;
+  }
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return charsetStr;
+
+    ctx.font = `24px ${fontName}`;
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#ffffff';
+
+    const uniqueChars = Array.from(new Set(charsetStr.split('')));
+    const measured = uniqueChars.map(char => {
+      ctx.clearRect(0, 0, 32, 32);
+      ctx.fillText(char, 4, 4);
+      const imgData = ctx.getImageData(0, 0, 32, 32);
+      let filledPixels = 0;
+      for (let i = 3; i < imgData.data.length; i += 4) {
+        if (imgData.data[i] > 20) filledPixels++;
+      }
+      return { char, density: filledPixels };
+    });
+
+    measured.sort((a, b) => a.density - b.density);
+    const sortedRamp = measured.map(m => m.char).join('');
+    fontRampCache.set(cacheKey, sortedRamp);
+    return sortedRamp;
+  } catch {
+    return charsetStr;
+  }
+}
+
+export function getRamp(charset: CharsetName, customCharset: string, invert: boolean, dynamicSort: boolean = false): string {
   let ramp = DENSITY_CHARSETS[charset] || DENSITY_CHARSETS.simple;
   if (charset === 'custom' && customCharset.trim()) {
     ramp = customCharset.trim();
   }
+
+  if (dynamicSort && charset !== 'braille') {
+    ramp = profileGlyphDensity(ramp);
+  }
+
   if (invert) {
     ramp = ramp.split('').reverse().join('');
   }
   return ramp;
 }
+
+/**
+ * Unicode Braille 2x4 Sub-Pixel Matrix Dot Mapper
+ * Dot index to bit mapping:
+ * Dot 1: (0,0) -> 0x01 | Dot 4: (1,0) -> 0x08
+ * Dot 2: (0,1) -> 0x02 | Dot 5: (1,1) -> 0x10
+ * Dot 3: (0,2) -> 0x04 | Dot 6: (1,2) -> 0x20
+ * Dot 7: (0,3) -> 0x40 | Dot 8: (1,3) -> 0x80
+ */
+const BRAILLE_DOT_MASKS = [
+  [0x01, 0x08], // y = 0: dots 1, 4
+  [0x02, 0x10], // y = 1: dots 2, 5
+  [0x04, 0x20], // y = 2: dots 3, 6
+  [0x40, 0x80], // y = 3: dots 7, 8
+];
 
 export function processAsciiArt(
   sourceCanvas: HTMLCanvasElement,
@@ -39,113 +125,233 @@ export function processAsciiArt(
   const srcH = sourceCanvas.height;
   if (srcW === 0 || srcH === 0) return null;
 
+  const effectiveRatio = options.autoAspectRatio ? detectFontAspectRatio() : options.aspectRatio;
   const targetCols = Math.max(20, Math.min(300, options.columns));
-  const targetRows = Math.max(1, Math.floor((srcH / srcW) * targetCols * options.aspectRatio));
+  const isBraille = options.charset === 'braille';
 
-  // Small sampling canvas
+  // For Braille mode, each cell represents 2x4 sub-pixels, so sample at 2x cols and 4x rows
+  const subCols = isBraille ? targetCols * 2 : targetCols;
+  const subRows = isBraille 
+    ? Math.max(4, Math.floor((srcH / srcW) * targetCols * effectiveRatio * 4))
+    : Math.max(1, Math.floor((srcH / srcW) * targetCols * effectiveRatio));
+
+  const targetRows = isBraille ? Math.floor(subRows / 4) : subRows;
+
+  // Sampling canvas
   const sampleCanvas = document.createElement('canvas');
-  sampleCanvas.width = targetCols;
-  sampleCanvas.height = targetRows;
+  sampleCanvas.width = subCols;
+  sampleCanvas.height = subRows;
   const sCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
   if (!sCtx) return null;
 
-  sCtx.drawImage(sourceCanvas, 0, 0, targetCols, targetRows);
-  const imgData = sCtx.getImageData(0, 0, targetCols, targetRows);
-  const data = imgData.data;
+  sCtx.drawImage(sourceCanvas, 0, 0, subCols, subRows);
+  const rawImgData = sCtx.getImageData(0, 0, subCols, subRows);
 
-  // Contrast Calculation
-  const cVal = Math.max(-254, Math.min(254, (options.contrast - 1.0) * 128));
-  const contrastFactor = (259 * (cVal + 255)) / (255 * (259 - cVal));
-
-  const ramp = getRamp(options.charset, options.customCharset, options.invert);
-  const rampLen = ramp.length;
-
-  // Pre-calculate brightness grid
-  const lumGrid = new Float32Array(targetCols * targetRows);
-  for (let y = 0; y < targetRows; y++) {
-    for (let x = 0; x < targetCols; x++) {
-      const idx = (y * targetCols + x) * 4;
-      const r = data[idx];
-      const g = data[idx + 1];
-      const b = data[idx + 2];
-
-      let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      lum = contrastFactor * (lum - 128) + 128;
-      lum *= options.brightness;
-      lumGrid[y * targetCols + x] = Math.max(0, Math.min(255, lum));
+  // Optical Signal Pre-processing (Gamma, CLAHE, Unsharp Mask, Contrast, Brightness)
+  const { rBuf, gBuf, bBuf, lumBuf } = preprocessSignalBuffer(
+    rawImgData.data,
+    subCols,
+    subRows,
+    {
+      contrast: options.contrast,
+      brightness: options.brightness,
+      gamma: options.gamma,
+      invert: options.invert,
+      claheEnabled: options.claheEnabled,
+      claheClipLimit: options.claheClipLimit,
+      unsharpStrength: options.unsharpStrength,
     }
-  }
-
-  // Error diffusion across character ramp if Dithered ASCII mode is on
-  if (enableDitheredAscii) {
-    for (let y = 0; y < targetRows; y++) {
-      for (let x = 0; x < targetCols; x++) {
-        const idx = y * targetCols + x;
-        const curLum = Math.max(0, Math.min(255, lumGrid[idx]));
-        const charStep = 255 / (rampLen - 1);
-        const charIdx = Math.max(0, Math.min(rampLen - 1, Math.round(curLum / charStep)));
-        const quantLum = charIdx * charStep;
-        const err = curLum - quantLum;
-
-        // Diffuse error
-        if (x + 1 < targetCols) lumGrid[y * targetCols + (x + 1)] += err * (7 / 16);
-        if (x - 1 >= 0 && y + 1 < targetRows) lumGrid[(y + 1) * targetCols + (x - 1)] += err * (3 / 16);
-        if (y + 1 < targetRows) lumGrid[(y + 1) * targetCols + x] += err * (5 / 16);
-        if (x + 1 < targetCols && y + 1 < targetRows) lumGrid[(y + 1) * targetCols + (x + 1)] += err * (1 / 16);
-      }
-    }
-  }
+  );
 
   const rows: string[] = [];
   const coloredGrid: { char: string; r: number; g: number; b: number; hex: string }[][] = [];
 
-  for (let y = 0; y < targetRows; y++) {
-    let rowStr = "";
-    const colorRow: { char: string; r: number; g: number; b: number; hex: string }[] = [];
-    for (let x = 0; x < targetCols; x++) {
-      const pIdx = (y * targetCols + x) * 4;
-      const r = data[pIdx];
-      const g = data[pIdx + 1];
-      const b = data[pIdx + 2];
+  if (isBraille) {
+    // -------------------------------------------------------------
+    // BRAILLE 2x4 SUB-PIXEL MATRIX ENGINE
+    // -------------------------------------------------------------
+    const threshold = 128;
 
-      const lum = Math.max(0, Math.min(255, lumGrid[y * targetCols + x]));
-      const charIdx = Math.max(0, Math.min(rampLen - 1, Math.floor((lum / 255) * (rampLen - 1))));
-      const char = ramp[charIdx];
+    for (let by = 0; by < targetRows; by++) {
+      let rowStr = '';
+      const colorRow: { char: string; r: number; g: number; b: number; hex: string }[] = [];
 
-      rowStr += char;
-      colorRow.push({
-        char,
-        r,
-        g,
-        b,
-        hex: `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
-      });
+      for (let bx = 0; bx < targetCols; bx++) {
+        let bitmask = 0;
+        let avgR = 0, avgG = 0, avgB = 0;
+        let count = 0;
+
+        for (let dy = 0; dy < 4; dy++) {
+          const sy = by * 4 + dy;
+          if (sy >= subRows) continue;
+
+          for (let dx = 0; dx < 2; dx++) {
+            const sx = bx * 2 + dx;
+            if (sx >= subCols) continue;
+
+            const idx = sy * subCols + sx;
+            const lum = lumBuf[idx];
+            if (lum > threshold) {
+              bitmask |= BRAILLE_DOT_MASKS[dy][dx];
+            }
+            avgR += rBuf[idx];
+            avgG += gBuf[idx];
+            avgB += bBuf[idx];
+            count++;
+          }
+        }
+
+        const char = String.fromCharCode(0x2800 + bitmask);
+        const r = count > 0 ? Math.round(avgR / count) : 0;
+        const g = count > 0 ? Math.round(avgG / count) : 0;
+        const b = count > 0 ? Math.round(avgB / count) : 0;
+
+        rowStr += char;
+        colorRow.push({
+          char,
+          r,
+          g,
+          b,
+          hex: `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+        });
+      }
+
+      rows.push(rowStr);
+      coloredGrid.push(colorRow);
     }
-    rows.push(rowStr);
-    coloredGrid.push(colorRow);
+  } else {
+    // -------------------------------------------------------------
+    // STANDARD / SOBEL-INJECTED ASCII ENGINE
+    // -------------------------------------------------------------
+    const ramp = getRamp(options.charset, options.customCharset, options.invert, options.dynamicFontSort);
+    const rampLen = ramp.length;
+
+    // Optional Sobel Edge Extraction for Structural Line Injection
+    let edgeAngles: Float32Array | null = null;
+    let edgeMagnitudes: Float32Array | null = null;
+
+    if (options.sobelEdgeInjection) {
+      edgeAngles = new Float32Array(subCols * subRows);
+      edgeMagnitudes = new Float32Array(subCols * subRows);
+      const getLum = (x: number, y: number) => {
+        const cx = Math.max(0, Math.min(subCols - 1, x));
+        const cy = Math.max(0, Math.min(subRows - 1, y));
+        return lumBuf[cy * subCols + cx];
+      };
+
+      for (let y = 0; y < subRows; y++) {
+        for (let x = 0; x < subCols; x++) {
+          const gx =
+            -1 * getLum(x - 1, y - 1) + 1 * getLum(x + 1, y - 1) +
+            -2 * getLum(x - 1, y)     + 2 * getLum(x + 1, y) +
+            -1 * getLum(x - 1, y + 1) + 1 * getLum(x + 1, y + 1);
+
+          const gy =
+            -1 * getLum(x - 1, y - 1) - 2 * getLum(x, y - 1) - 1 * getLum(x + 1, y - 1) +
+             1 * getLum(x - 1, y + 1) + 2 * getLum(x, y + 1) + 1 * getLum(x + 1, y + 1);
+
+          const mag = Math.sqrt(gx * gx + gy * gy);
+          const angle = Math.atan2(gy, gx); // radians: -PI to PI
+          const idx = y * subCols + x;
+          edgeMagnitudes[idx] = mag;
+          edgeAngles[idx] = angle;
+        }
+      }
+    }
+
+    // Error diffusion across character ramp if Dithered ASCII mode is on
+    if (enableDitheredAscii) {
+      for (let y = 0; y < subRows; y++) {
+        for (let x = 0; x < subCols; x++) {
+          const idx = y * subCols + x;
+          const curLum = Math.max(0, Math.min(255, lumBuf[idx]));
+          const charStep = 255 / (rampLen - 1);
+          const charIdx = Math.max(0, Math.min(rampLen - 1, Math.round(curLum / charStep)));
+          const quantLum = charIdx * charStep;
+          const err = curLum - quantLum;
+
+          if (x + 1 < subCols) lumBuf[y * subCols + (x + 1)] += err * (7 / 16);
+          if (x - 1 >= 0 && y + 1 < subRows) lumBuf[(y + 1) * subCols + (x - 1)] += err * (3 / 16);
+          if (y + 1 < subRows) lumBuf[(y + 1) * subCols + x] += err * (5 / 16);
+          if (x + 1 < subCols && y + 1 < subRows) lumBuf[(y + 1) * subCols + (x + 1)] += err * (1 / 16);
+        }
+      }
+    }
+
+    const sobelCutoff = (1.0 - (options.sobelSensitivity ?? 0.5)) * 180 + 40;
+
+    for (let y = 0; y < subRows; y++) {
+      let rowStr = '';
+      const colorRow: { char: string; r: number; g: number; b: number; hex: string }[] = [];
+
+      for (let x = 0; x < subCols; x++) {
+        const idx = y * subCols + x;
+        const r = Math.round(rBuf[idx]);
+        const g = Math.round(gBuf[idx]);
+        const b = Math.round(bBuf[idx]);
+        const lum = Math.max(0, Math.min(255, lumBuf[idx]));
+
+        let char = '';
+
+        // Check Sobel edge injection first
+        if (options.sobelEdgeInjection && edgeMagnitudes && edgeAngles) {
+          const mag = edgeMagnitudes[idx];
+          if (mag > sobelCutoff) {
+            let deg = (edgeAngles[idx] * 180) / Math.PI;
+            if (deg < 0) deg += 180;
+
+            if (deg >= 22.5 && deg < 67.5) {
+              char = '/';
+            } else if (deg >= 67.5 && deg < 112.5) {
+              char = '-';
+            } else if (deg >= 112.5 && deg < 157.5) {
+              char = '\\';
+            } else {
+              char = '|';
+            }
+          }
+        }
+
+        if (!char) {
+          const charIdx = Math.max(0, Math.min(rampLen - 1, Math.floor((lum / 255) * (rampLen - 1))));
+          char = ramp[charIdx];
+        }
+
+        rowStr += char;
+        colorRow.push({
+          char,
+          r,
+          g,
+          b,
+          hex: `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+        });
+      }
+
+      rows.push(rowStr);
+      coloredGrid.push(colorRow);
+    }
   }
 
   // Draw to target canvas
   const charH = options.fontSize;
-  const charW = Math.max(1, charH * 0.6);
+  const charW = Math.max(1, charH * effectiveRatio);
   targetCanvas.width = Math.floor(targetCols * charW + 20);
   targetCanvas.height = Math.floor(targetRows * charH + 20);
 
   const tCtx = targetCanvas.getContext('2d');
   if (tCtx) {
-    // Theme colors
-    let bgColor = "#05070a";
-    let textColor = "#00ff41";
+    let bgColor = '#05070a';
+    let textColor = '#00ff41';
 
     if (options.asciiColorMode === 'amber') {
-      bgColor = "#0f0b04";
-      textColor = "#ffb000";
+      bgColor = '#0f0b04';
+      textColor = '#ffb000';
     } else if (options.asciiColorMode === 'bw') {
-      bgColor = "#000000";
-      textColor = "#ffffff";
+      bgColor = '#000000';
+      textColor = '#ffffff';
     } else if (options.asciiColorMode === 'synthwave') {
-      bgColor = "#0e051a";
-      textColor = "#ff71ce";
+      bgColor = '#0e051a';
+      textColor = '#ff71ce';
     }
 
     tCtx.fillStyle = bgColor;
@@ -213,14 +419,14 @@ export function generateHtmlExport(result: AsciiConversionResult, colorMode: str
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Cyberpunk ASCII Export</title>
+  <title>CYBER::STUDIO ASCII Export</title>
   <style>
     body {
       background: ${bg};
       color: ${defaultText};
       font-family: 'Fira Code', 'Courier New', monospace;
       font-size: 11px;
-      line-height: 0.65;
+      line-height: 0.70;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -229,12 +435,13 @@ export function generateHtmlExport(result: AsciiConversionResult, colorMode: str
       padding: 20px;
     }
     .art-container {
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.85);
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 0 30px rgba(0,255,65,0.2);
       white-space: pre;
       font-weight: bold;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>

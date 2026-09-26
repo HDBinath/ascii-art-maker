@@ -1,4 +1,5 @@
 import { PaletteName, RGBColor } from './types';
+import { rgbToOklab, oklabDistanceSquared, CachedPaletteColor, createCachedPalette } from './colorScience';
 
 export function hexToRgb(hex: string): RGBColor {
   const sanitized = hex.replace('#', '').trim();
@@ -89,23 +90,24 @@ export function getPaletteRgbList(paletteName: PaletteName, customColors: string
   return pal.colors.map(hexToRgb);
 }
 
-// Find closest color using perceptual Euclidean distance
+export function getCachedPalette(paletteName: PaletteName, customColors: string[] = []): CachedPaletteColor[] {
+  const rgbList = getPaletteRgbList(paletteName, customColors);
+  return createCachedPalette(rgbList);
+}
+
+// Find closest color using Oklab perceptual distance
 export function findClosestPaletteColor(r: number, g: number, b: number, palette: RGBColor[]): RGBColor {
   if (palette.length === 0) return { r, g, b };
   if (palette.length === 1) return palette[0];
 
+  const targetOklab = rgbToOklab(r, g, b);
   let minDist = Infinity;
   let closest = palette[0];
 
-  // Weighted RGB Euclidean distance (human eye is more sensitive to green, then red, then blue)
   for (let i = 0; i < palette.length; i++) {
     const c = palette[i];
-    const dr = r - c.r;
-    const dg = g - c.g;
-    const db = b - c.b;
-    // Perceptual color weighting (standard redmean formula approximation)
-    const rMean = (r + c.r) / 2;
-    const dist = (2 + rMean / 256) * dr * dr + 4.0 * dg * dg + (2 + (255 - rMean) / 256) * db * db;
+    const cOklab = rgbToOklab(c.r, c.g, c.b);
+    const dist = oklabDistanceSquared(targetOklab, cOklab);
     if (dist < minDist) {
       minDist = dist;
       closest = c;
@@ -114,3 +116,24 @@ export function findClosestPaletteColor(r: number, g: number, b: number, palette
 
   return closest;
 }
+
+export function findClosestCachedPaletteColor(r: number, g: number, b: number, cachedPalette: CachedPaletteColor[]): RGBColor {
+  if (cachedPalette.length === 0) return { r, g, b };
+  if (cachedPalette.length === 1) return cachedPalette[0].rgb;
+
+  const targetOklab = rgbToOklab(r, g, b);
+  let minDist = Infinity;
+  let closest = cachedPalette[0].rgb;
+
+  for (let i = 0; i < cachedPalette.length; i++) {
+    const c = cachedPalette[i];
+    const dist = oklabDistanceSquared(targetOklab, c.oklab);
+    if (dist < minDist) {
+      minDist = dist;
+      closest = c.rgb;
+    }
+  }
+
+  return closest;
+}
+
