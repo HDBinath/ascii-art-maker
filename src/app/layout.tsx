@@ -21,6 +21,10 @@ export default function RootLayout({
       </head>
       <body>
         <ClerkProvider
+          publishableKey={
+            process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+            "pk_test_YmVsb3ZlZC1iYXNpbGlzay00MjEyLmNsZXJrLmFjY291bnRzLmRldiQ"
+          }
           appearance={{
             theme: dark,
             variables: {

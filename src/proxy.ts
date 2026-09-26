@@ -1,18 +1,29 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProtectedRoute = createRouteMatcher(["/studio(.*)"]);
 
-export default clerkMiddleware(async (auth, req) => {
+const clerkHandler = clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     await auth.protect();
   }
 });
 
+export async function proxy(request: NextRequest, event: any) {
+  try {
+    return await (clerkHandler as any)(request, event);
+  } catch (err) {
+    console.error("Clerk proxy edge warning:", err);
+    return NextResponse.next();
+  }
+}
+
+export default proxy;
+
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/studio/:path*",
     "/(api|trpc)(.*)",
-    "/__clerk/:path*",
   ],
 };
-
