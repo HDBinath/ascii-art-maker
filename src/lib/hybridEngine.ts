@@ -100,23 +100,17 @@ export function processHybridArt(
       finalCharIdx = Math.max(0, Math.min(rampLen - 1, finalCharIdx));
       const char = ramp[finalCharIdx];
 
-      // Two-Tone Cell Quantization
-      let fgColor = findClosestCachedPaletteColor(origR * 1.2, origG * 1.2, origB * 1.2, cachedPalette);
-      let bgColor = findClosestCachedPaletteColor(origR * 0.35, origG * 0.35, origB * 0.35, cachedPalette);
+      // Two-Tone Cell Quantization using selected Oklab Chrominance Palette
+      let fgColor = findClosestCachedPaletteColor(
+        Math.min(255, origR * 1.25),
+        Math.min(255, origG * 1.25),
+        Math.min(255, origB * 1.25),
+        cachedPalette
+      );
 
-      if (options.asciiColorMode === 'matrix') {
-        fgColor = { r: 0, g: 255, b: 65 };
-        bgColor = { r: 5, g: 15, b: 8 };
-      } else if (options.asciiColorMode === 'amber') {
-        fgColor = { r: 255, g: 176, b: 0 };
-        bgColor = { r: 15, g: 11, b: 4 };
-      } else if (options.asciiColorMode === 'bw') {
-        fgColor = { r: 255, g: 255, b: 255 };
-        bgColor = { r: 0, g: 0, b: 0 };
-      } else if (options.asciiColorMode === 'synthwave') {
-        fgColor = { r: 255, g: 113, b: 206 };
-        bgColor = { r: 14, g: 5, b: 26 };
-      }
+      let bgColor = options.hybridTwoTone
+        ? findClosestCachedPaletteColor(origR * 0.25, origG * 0.25, origB * 0.25, cachedPalette)
+        : { r: 5, g: 7, b: 10 };
 
       const fgHex = `#${((1 << 24) + (fgColor.r << 16) + (fgColor.g << 8) + fgColor.b).toString(16).slice(1)}`;
       const bgHex = `#${((1 << 24) + (bgColor.r << 16) + (bgColor.g << 8) + bgColor.b).toString(16).slice(1)}`;

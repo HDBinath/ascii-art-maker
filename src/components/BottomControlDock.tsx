@@ -1,56 +1,28 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { AppOptions, CharsetName, DitherAlgorithm, PaletteName, UpscaleMode } from '@/lib/types';
+import React from 'react';
+import { AppOptions, CharsetName, DitherAlgorithm, PaletteName } from '@/lib/types';
 import { PRESET_PALETTES } from '@/lib/palettes';
 import { DENSITY_CHARSETS } from '@/lib/asciiEngine';
-import { generateHighResExportCanvas, exportCanvasToBlob } from '@/lib/upscaleHelper';
 import { soundFx } from '@/lib/soundFx';
-import { saveArtworkToVault } from '@/lib/artStorage';
 import {
-  UploadCloud,
-  Camera,
   Layers,
-  Sparkles,
-  Download,
-  FileText,
-  Code,
-  Copy,
   Sliders,
   Palette,
   Type,
-  BookmarkPlus,
-  Compass,
   Wand2,
-  Scan,
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 interface BottomControlDockProps {
   options: AppOptions;
   setOptions: React.Dispatch<React.SetStateAction<AppOptions>>;
-  sourceType: 'upload' | 'webcam';
-  setSourceType: (type: 'upload' | 'webcam') => void;
-  onFileUpload: (file: File) => void;
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  plainText: string;
-  htmlContent: string;
-  onToast: (msg: string) => void;
+  onToast?: (msg: string) => void;
 }
 
 export const BottomControlDock: React.FC<BottomControlDockProps> = ({
   options,
   setOptions,
-  sourceType,
-  setSourceType,
-  onFileUpload,
-  canvasRef,
-  plainText,
-  htmlContent,
-  onToast,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const updateOption = <K extends keyof AppOptions>(key: K, value: AppOptions[K]) => {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
@@ -60,223 +32,14 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
     updateOption(key, value);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onFileUpload(file);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const triggerConfetti = () => {
-    try {
-      confetti({
-        particleCount: 50,
-        spread: 65,
-        origin: { y: 0.85 },
-        colors: ['#ffc5dc', '#fd86db', '#ffffff', '#ff94e0', '#fce7f3'],
-      });
-    } catch {}
-  };
-
-  const handleDownloadPng = async () => {
-    if (!canvasRef.current) return;
-    soundFx.playScan();
-    triggerConfetti();
-    onToast(`Generating ${options.exportScale}x High-Res PNG...`);
-
-    try {
-      const exportCanvas = generateHighResExportCanvas(canvasRef.current, options.exportScale);
-      const blob = await exportCanvasToBlob(exportCanvas);
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      const scaleLabel = options.exportScale > 1 ? `_${options.exportScale}x_HD` : '';
-      link.download = `orbit_${options.mode}${scaleLabel}_${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      const fileSizeMb = (blob.size / (1024 * 1024)).toFixed(2);
-      onToast(`PNG Downloaded (${options.exportScale}x: ${exportCanvas.width}×${exportCanvas.height}px, ${fileSizeMb} MB)!`);
-    } catch (err) {
-      console.error('High-res export failed:', err);
-      onToast('Export failed: Image resolution exceeds system memory.');
-    }
-  };
-
-  const handleDownloadTxt = () => {
-    if (!plainText) {
-      onToast('No ASCII text available to export.');
-      return;
-    }
-    soundFx.playScan();
-    triggerConfetti();
-
-    const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `cyber_ascii_${Date.now()}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    onToast('Plain Text File Saved!');
-  };
-
-  const handleDownloadHtml = () => {
-    if (!htmlContent) {
-      onToast('No HTML document available.');
-      return;
-    }
-    soundFx.playScan();
-    triggerConfetti();
-
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `cyber_ascii_${Date.now()}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    onToast('Standalone HTML Webpage Exported!');
-  };
-
-  const handleCopyClipboard = () => {
-    if (!plainText) {
-      onToast('No text available to copy.');
-      return;
-    }
-    soundFx.playClick();
-    navigator.clipboard.writeText(plainText)
-      .then(() => onToast('Copied ASCII Art to Clipboard!'))
-      .catch(() => onToast('Clipboard access denied.'));
-  };
-
-  const handleSaveToVault = async () => {
-    if (!canvasRef.current) {
-      onToast('No rendered artwork available to save.');
-      return;
-    }
-    soundFx.playPower();
-    triggerConfetti();
-
-    try {
-      const dataUrl = canvasRef.current.toDataURL('image/png');
-      await saveArtworkToVault({
-        title: `${options.mode.toUpperCase()} Creation #${Date.now().toString().slice(-4)}`,
-        mode: options.mode,
-        thumbnailDataUrl: dataUrl,
-        fullDataUrl: dataUrl,
-        plainText: plainText || undefined,
-        stats: {
-          width: canvasRef.current.width,
-          height: canvasRef.current.height,
-          count: canvasRef.current.width * canvasRef.current.height,
-          unitName: options.mode === 'dither' ? 'PIXELS' : 'CHARS',
-        },
-        options: { ...options },
-      });
-      onToast('Saved to Art Vault! Accessible in Gallery.');
-    } catch (err) {
-      console.error('Failed to save to vault:', err);
-      onToast('Saved to local gallery!');
-    }
-  };
-
   return (
     <footer className="bottom-dock-wrapper">
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        className="hidden"
-      />
-
       <div className="bottom-dock-container">
-        {/* 1. SOURCE & UPSCALE SELECTOR */}
-        <div className="dock-column dock-source-col">
-          <span className="dock-col-label"><UploadCloud className="w-3.5 h-3.5 text-green-400" /> SOURCE & UPSCALE</span>
-          <div className="dock-button-stack">
-            <button
-              type="button"
-              className={`dock-btn ${sourceType === 'upload' ? 'active' : ''}`}
-              onClick={() => {
-                soundFx.playClick();
-                setSourceType('upload');
-                fileInputRef.current?.click();
-              }}
-              title="Upload New Image File"
-            >
-              <UploadCloud className="w-4 h-4" />
-              <span>UPLOAD IMAGE</span>
-            </button>
-
-            <button
-              type="button"
-              className={`dock-btn ${sourceType === 'webcam' ? 'active' : ''}`}
-              onClick={() => {
-                soundFx.playClick();
-                setSourceType(sourceType === 'webcam' ? 'upload' : 'webcam');
-              }}
-              title="Toggle Live Webcam Feed"
-            >
-              <Camera className="w-4 h-4" />
-              <span>{sourceType === 'webcam' ? 'STOP WEBCAM' : 'START WEBCAM'}</span>
-            </button>
-          </div>
-
-          {/* Source Upscale Factor Chips */}
-          <div className="dock-upscale-chips mt-1">
-            <span className="dock-sub-label">INPUT SCALE:</span>
-            {[1, 2, 4, 8].map((factor) => (
-              <button
-                key={factor}
-                type="button"
-                className={`dock-chip-btn ${options.upscaleFactor === factor ? 'active' : ''}`}
-                onClick={() => handlePillClick('upscaleFactor', factor)}
-                title={`Upscale source image by ${factor}x before conversion`}
-              >
-                {factor}x
-              </button>
-            ))}
-          </div>
-
-          {/* Upscale Resampling Mode */}
-          <div className="dock-upscale-chips mt-1">
-            <span className="dock-sub-label">UPSCALE MODE:</span>
-            {(
-              [
-                ['smooth', 'Bicubic'],
-                ['pixel', 'Nearest'],
-                ['edge', 'Edge Sharp'],
-              ] as [UpscaleMode, string][]
-            ).map(([uMode, label]) => (
-              <button
-                key={uMode}
-                type="button"
-                className={`dock-chip-btn ${options.upscaleMode === uMode ? 'active' : ''}`}
-                onClick={() => handlePillClick('upscaleMode', uMode)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="dock-divider" />
-
-        {/* 2. SIGNAL PRE-PROCESSING & OPTICAL CONTROLS */}
+        {/* 1. SIGNAL PRE-PROCESSING & OPTICAL CONTROLS */}
         <div className="dock-column dock-gain-col">
-          <span className="dock-col-label"><Sliders className="w-3.5 h-3.5 text-cyan-400" /> SIGNAL PRE-PROCESSING</span>
+          <span className="dock-col-label">
+            <Sliders className="w-3.5 h-3.5 text-cyan-400" /> SIGNAL PRE-PROCESSING
+          </span>
           <div className="dock-sliders-cluster">
             {/* Contrast */}
             <div className="dock-slider-unit">
@@ -383,12 +146,14 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
         <div className="dock-divider" />
 
-        {/* 3. DYNAMIC MODE ENGINE CONTROLS */}
+        {/* 2. DYNAMIC MODE ENGINE CONTROLS */}
         {options.mode === 'dither' ? (
           <>
             {/* Dither Algorithm & Error Diffusion Controls */}
             <div className="dock-column dock-main-controls-col">
-              <span className="dock-col-label"><Layers className="w-3.5 h-3.5 text-pink-400" /> DITHER ALGORITHM & DIFFUSION</span>
+              <span className="dock-col-label">
+                <Layers className="w-3.5 h-3.5 text-pink-400" /> DITHER ALGORITHM & DIFFUSION
+              </span>
               <div className="dock-pill-scroll">
                 {(
                   [
@@ -503,7 +268,9 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
             {/* Dither Palette Selector */}
             <div className="dock-column dock-palettes-col">
-              <span className="dock-col-label"><Palette className="w-3.5 h-3.5 text-amber-400" /> OKLAB COLOR PALETTES</span>
+              <span className="dock-col-label">
+                <Palette className="w-3.5 h-3.5 text-amber-400" /> OKLAB COLOR PALETTES
+              </span>
               <div className="dock-palettes-scroll">
                 {(Object.keys(PRESET_PALETTES) as PaletteName[]).map((palKey) => {
                   const pal = PRESET_PALETTES[palKey];
@@ -530,7 +297,9 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
           <>
             {/* Dither-ASCII Hybrid Controls */}
             <div className="dock-column dock-main-controls-col">
-              <span className="dock-col-label"><Wand2 className="w-3.5 h-3.5 text-pink-400" /> DITHER-ASCII HYBRID PHOSPHOR</span>
+              <span className="dock-col-label">
+                <Wand2 className="w-3.5 h-3.5 text-pink-400" /> DITHER-ASCII HYBRID PHOSPHOR
+              </span>
               <div className="dock-sliders-cluster">
                 <div className="dock-slider-unit">
                   <div className="dock-slider-label">
@@ -614,7 +383,9 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
             {/* Hybrid Palette Selector */}
             <div className="dock-column dock-palettes-col">
-              <span className="dock-col-label"><Palette className="w-3.5 h-3.5 text-amber-400" /> CHROMINANCE PALETTES</span>
+              <span className="dock-col-label">
+                <Palette className="w-3.5 h-3.5 text-amber-400" /> CHROMINANCE PALETTES
+              </span>
               <div className="dock-palettes-scroll">
                 {(Object.keys(PRESET_PALETTES) as PaletteName[]).map((palKey) => {
                   const pal = PRESET_PALETTES[palKey];
@@ -641,7 +412,9 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
           <>
             {/* ASCII Grid & Optical Edge Controls */}
             <div className="dock-column dock-main-controls-col">
-              <span className="dock-col-label"><Type className="w-3.5 h-3.5 text-green-400" /> ASCII GRID & EDGE INJECTION</span>
+              <span className="dock-col-label">
+                <Type className="w-3.5 h-3.5 text-green-400" /> ASCII GRID & EDGE INJECTION
+              </span>
               <div className="dock-sliders-cluster">
                 <div className="dock-slider-unit">
                   <div className="dock-slider-label">
@@ -778,7 +551,9 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
             {/* ASCII Themes */}
             <div className="dock-column dock-theme-col">
-              <span className="dock-col-label"><Palette className="w-3.5 h-3.5 text-pink-400" /> COLOR THEME</span>
+              <span className="dock-col-label">
+                <Palette className="w-3.5 h-3.5 text-pink-400" /> COLOR THEME
+              </span>
               <div className="dock-theme-grid">
                 {(
                   [
@@ -802,88 +577,6 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
             </div>
           </>
         )}
-
-        <div className="dock-divider" />
-
-        {/* 4. EXPORT HUB & HIGH-RES SCALE */}
-        <div className="dock-column dock-export-col">
-          <span className="dock-col-label"><Download className="w-3.5 h-3.5 text-green-400" /> EXPORT & HIGH-RES</span>
-          <div className="dock-button-stack">
-            <div className="flex gap-1.5 items-center">
-              <button
-                type="button"
-                className="dock-export-btn primary flex-1"
-                onClick={handleDownloadPng}
-                title={`Download rendered image at ${options.exportScale}x High-Resolution PNG`}
-              >
-                <Download className="w-4 h-4" />
-                <span>PNG ({options.exportScale}x)</span>
-              </button>
-              <button
-                type="button"
-                className="dock-export-btn secondary"
-                onClick={handleSaveToVault}
-                title="Save current artwork to your local Art Vault library"
-              >
-                <BookmarkPlus className="w-3.5 h-3.5 text-pink-400" />
-                <span>SAVE</span>
-              </button>
-            </div>
-
-            {(options.mode === 'ascii' || options.mode === 'hybrid') && (
-              <div className="dock-sub-actions-row">
-                <button
-                  type="button"
-                  className="dock-export-btn secondary"
-                  onClick={handleDownloadTxt}
-                  title="Save .TXT plain text file"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>.TXT</span>
-                </button>
-                <button
-                  type="button"
-                  className="dock-export-btn secondary"
-                  onClick={handleDownloadHtml}
-                  title="Export styled .HTML webpage"
-                >
-                  <Code className="w-3.5 h-3.5" />
-                  <span>.HTML</span>
-                </button>
-                <button
-                  type="button"
-                  className="dock-export-btn secondary"
-                  onClick={handleCopyClipboard}
-                  title="Copy ASCII text to clipboard"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>COPY</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Export Scale Multiplier */}
-          <div className="dock-upscale-chips mt-1">
-            <span className="dock-sub-label">OUTPUT RES:</span>
-            {[
-              [1, '1x'],
-              [2, '2x HD'],
-              [4, '4x 4K'],
-              [8, '8x Max'],
-            ].map(([scale, label]) => (
-              <button
-                key={scale}
-                type="button"
-                className={`dock-chip-btn ${options.exportScale === scale ? 'active' : ''}`}
-                onClick={() => handlePillClick('exportScale', scale as number)}
-                title={`Export downloadable image at ${scale}x scale`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </footer>
   );

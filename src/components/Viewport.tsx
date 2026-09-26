@@ -1,18 +1,42 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AppOptions } from '@/lib/types';
+import { AppOptions, UpscaleMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
-import { Maximize2, SplitSquareHorizontal, Hash, UploadCloud, Camera } from 'lucide-react';
+import { generateHighResExportCanvas, exportCanvasToBlob } from '@/lib/upscaleHelper';
+import { saveArtworkToVault } from '@/lib/artStorage';
+import confetti from 'canvas-confetti';
+import {
+  Maximize2,
+  SplitSquareHorizontal,
+  Hash,
+  UploadCloud,
+  Camera,
+  Download,
+  BookmarkPlus,
+  ChevronDown,
+  FileText,
+  Code,
+  Copy,
+  Layers,
+  Sparkles,
+  Scaling,
+} from 'lucide-react';
 
 interface ViewportProps {
   options: AppOptions;
+  setOptions: React.Dispatch<React.SetStateAction<AppOptions>>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   sourceCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  sourceType: 'upload' | 'webcam';
+  setSourceType: (type: 'upload' | 'webcam') => void;
   hasImage: boolean;
   isProcessing?: boolean;
   onUploadClick: () => void;
-  onWebcamClick: () => void;
+  plainText: string;
+  htmlContent?: string;
+  getHtmlContent?: () => string;
+  onToast: (msg: string) => void;
   stats: {
     width: number;
     height: number;
@@ -25,19 +49,48 @@ const GLYPH_POOL = ['0', '1', '█', '#', '@', '¥', '§', '▲', '░', '▓', 
 
 export const Viewport: React.FC<ViewportProps> = ({
   options,
+  setOptions,
   canvasRef,
   sourceCanvasRef,
+  sourceType,
+  setSourceType,
   hasImage,
   isProcessing = false,
   onUploadClick,
-  onWebcamClick,
+  plainText,
+  htmlContent = '',
+  getHtmlContent,
+  onToast,
   stats,
 }) => {
   const [splitView, setSplitView] = useState(false);
   const [splitPos, setSplitPos] = useState(50); // percentage (0 - 100)
   const [activeGlyph, setActiveGlyph] = useState('◈');
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [scaleDropdownOpen, setScaleDropdownOpen] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const scaleMenuRef = useRef<HTMLDivElement>(null);
+
+  const updateOption = <K extends keyof AppOptions>(key: K, value: AppOptions[K]) => {
+    setOptions(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setExportDropdownOpen(false);
+      }
+      if (scaleMenuRef.current && !scaleMenuRef.current.contains(e.target as Node)) {
+        setScaleDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Cycle matrix glyphs when processing
   useEffect(() => {
@@ -73,15 +126,239 @@ export const Viewport: React.FC<ViewportProps> = ({
     };
   }, []);
 
+  const triggerConfetti = () => {
+    try {
+      confetti({
+        particleCount: 50,
+        spread: 65,
+        origin: { y: 0.25 },
+        colors: ['#ffc5dc', '#fd86db', '#ffffff', '#ff94e0', '#fce7f3'],
+      });
+    } catch {}
+  };
+
+  const handleDownloadPng = async () => {
+    if (!canvasRef.current) return;
+    setExportDropdownOpen(false);
+    soundFx.playScan();
+    triggerConfetti();
+    onToast(`Generating ${options.exportScale}x High-Res PNG...`);
+
+    try {
+      const exportCanvas = generateHighResExportCanvas(canvasRef.current, options.exportScale);
+      const blob = await exportCanvasToBlob(exportCanvas);
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const scaleLabel = options.exportScale > 1 ? `_${options.exportScale}x_HD` : '';
+      link.download = `orbit_${options.mode}${scaleLabel}_${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      const fileSizeMb = (blob.size / (1024 * 1024)).toFixed(2);
+      onToast(`PNG Downloaded (${options.exportScale}x: ${exportCanvas.width}×${exportCanvas.height}px, ${fileSizeMb} MB)!`);
+    } catch (err) {
+      console.error('High-res export failed:', err);
+      onToast('Export failed: Image resolution exceeds system memory.');
+    }
+  };
+
+  const handleSaveToVault = async () => {
+    if (!canvasRef.current) {
+      onToast('No rendered artwork available to save.');
+      return;
+    }
+    soundFx.playPower();
+    triggerConfetti();
+
+    try {
+      const dataUrl = canvasRef.current.toDataURL('image/png');
+      await saveArtworkToVault({
+        title: `${options.mode.toUpperCase()} Creation #${Date.now().toString().slice(-4)}`,
+        mode: options.mode,
+        thumbnailDataUrl: dataUrl,
+        fullDataUrl: dataUrl,
+        plainText: plainText || undefined,
+        stats: {
+          width: canvasRef.current.width,
+          height: canvasRef.current.height,
+          count: canvasRef.current.width * canvasRef.current.height,
+          unitName: options.mode === 'dither' ? 'PIXELS' : 'CHARS',
+        },
+        options: { ...options },
+      });
+      onToast('Saved to Art Vault! Accessible in Gallery.');
+    } catch (err) {
+      console.error('Failed to save to vault:', err);
+      onToast('Saved to local gallery!');
+    }
+  };
+
+  const handleDownloadTxt = () => {
+    if (!plainText) {
+      onToast('No ASCII text available to export.');
+      return;
+    }
+    soundFx.playScan();
+    triggerConfetti();
+
+    const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cyber_ascii_${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    onToast('Plain Text File Saved!');
+  };
+
+  const handleDownloadHtml = () => {
+    const content = (getHtmlContent ? getHtmlContent() : htmlContent) || '';
+    if (!content) {
+      onToast('No HTML document available.');
+      return;
+    }
+    soundFx.playScan();
+    triggerConfetti();
+
+    const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cyber_ascii_${Date.now()}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    onToast('Standalone HTML Webpage Exported!');
+  };
+
+  const handleCopyClipboard = () => {
+    if (!plainText) {
+      onToast('No text available to copy.');
+      return;
+    }
+    soundFx.playClick();
+    navigator.clipboard.writeText(plainText)
+      .then(() => onToast('Copied ASCII Art to Clipboard!'))
+      .catch(() => onToast('Clipboard access denied.'));
+  };
+
   return (
     <div className="viewport-wrapper">
-      {/* Top HUD Meta Bar */}
+      {/* ─────────────────────────────────────────────────────────── */}
+      {/* UNIFIED UPPER TOOLBAR / RENDER ENGINE HUD ROW              */}
+      {/* ─────────────────────────────────────────────────────────── */}
       <div className="viewport-hud-bar">
-        <div className="hud-status-group">
+        {/* LEFT: SOURCE & INPUT UPSCALE CONTROLS */}
+        <div className="hud-source-group flex items-center gap-1.5">
+          <button
+            type="button"
+            className={`btn-hud-tool ${sourceType === 'upload' ? 'active' : ''}`}
+            onClick={() => {
+              soundFx.playClick();
+              setSourceType('upload');
+              onUploadClick();
+            }}
+            title="Upload source image file"
+          >
+            <UploadCloud className="w-3.5 h-3.5 text-green-400" />
+            <span>Upload Image</span>
+          </button>
+
+          <button
+            type="button"
+            className={`btn-hud-tool ${sourceType === 'webcam' ? 'active' : ''}`}
+            onClick={() => {
+              soundFx.playClick();
+              setSourceType(sourceType === 'webcam' ? 'upload' : 'webcam');
+            }}
+            title="Toggle live camera feed"
+          >
+            <Camera className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{sourceType === 'webcam' ? 'Stop Camera' : 'Camera'}</span>
+          </button>
+
+          {/* Input Upscale Popover Menu */}
+          <div className="relative" ref={scaleMenuRef}>
+            <button
+              type="button"
+              className={`btn-hud-tool ${options.upscaleFactor > 1 ? 'active' : ''}`}
+              onClick={() => {
+                soundFx.playClick();
+                setScaleDropdownOpen(!scaleDropdownOpen);
+              }}
+              title="Configure source resolution upscaling"
+            >
+              <Scaling className="w-3.5 h-3.5 text-pink-400" />
+              <span>Scale: {options.upscaleFactor}x</span>
+              <ChevronDown className="w-3 h-3 text-neutral-400" />
+            </button>
+
+            {scaleDropdownOpen && (
+              <div className="hud-popover-dropdown scale-dropdown">
+                <div className="popover-title">INPUT RESOLUTION UPSCALE</div>
+                <div className="popover-chips-row">
+                  {[1, 2, 4, 8].map((factor) => (
+                    <button
+                      key={factor}
+                      type="button"
+                      className={`popover-chip-btn ${options.upscaleFactor === factor ? 'active' : ''}`}
+                      onClick={() => {
+                        soundFx.playClick();
+                        updateOption('upscaleFactor', factor);
+                        setScaleDropdownOpen(false);
+                      }}
+                    >
+                      {factor}x
+                    </button>
+                  ))}
+                </div>
+
+                <div className="popover-title mt-2">RESAMPLING METHOD</div>
+                <div className="popover-methods-col">
+                  {(
+                    [
+                      ['smooth', 'Bicubic (Photo & Smooth)'],
+                      ['pixel', 'Nearest (Crisp Pixel Art)'],
+                      ['edge', 'Edge-Enhanced (Sharp Lines)'],
+                    ] as [UpscaleMode, string][]
+                  ).map(([uMode, label]) => (
+                    <button
+                      key={uMode}
+                      type="button"
+                      className={`popover-method-btn ${options.upscaleMode === uMode ? 'active' : ''}`}
+                      onClick={() => {
+                        soundFx.playClick();
+                        updateOption('upscaleMode', uMode);
+                        setScaleDropdownOpen(false);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="hud-divider" />
+
+        {/* CENTER: ENGINE BADGE, CANVAS STATS & SPLIT VIEW */}
+        <div className="hud-status-group flex items-center gap-2">
           <span className="hud-badge active">
             <span className="pulse-dot" />
             <span>RENDER ENGINE: {options.mode.toUpperCase()}</span>
           </span>
+
           {hasImage && !isProcessing && (
             <>
               <span className="hud-meta">
@@ -94,15 +371,14 @@ export const Viewport: React.FC<ViewportProps> = ({
               </span>
             </>
           )}
+
           {isProcessing && (
             <span className="hud-meta text-pink-400 animate-pulse">
               <span>PROCESSING STREAM...</span>
             </span>
           )}
-        </div>
 
-        {hasImage && !isProcessing && (
-          <div className="hud-tools-group">
+          {hasImage && !isProcessing && (
             <button
               type="button"
               className={`btn-hud-tab ${splitView ? 'active' : ''}`}
@@ -115,11 +391,138 @@ export const Viewport: React.FC<ViewportProps> = ({
               <SplitSquareHorizontal className="w-3.5 h-3.5" />
               <span>{splitView ? 'SPLIT VIEW' : 'FULL VIEW'}</span>
             </button>
+          )}
+        </div>
+
+        <div className="hud-divider" />
+
+        {/* RIGHT: EXPORT HUB WITH DROPDOWN RESOLUTION & SAVE TO VAULT */}
+        <div className="hud-export-group flex items-center gap-1.5">
+          {/* Export Dropdown Menu */}
+          <div className="relative" ref={exportMenuRef}>
+            <div className="hud-export-split-btn">
+              <button
+                type="button"
+                className="btn-hud-export primary"
+                onClick={handleDownloadPng}
+                title={`Export ${options.exportScale}x High-Resolution PNG Image`}
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export PNG ({options.exportScale}x)</span>
+              </button>
+
+              <button
+                type="button"
+                className={`btn-hud-export-trigger ${exportDropdownOpen ? 'active' : ''}`}
+                onClick={() => {
+                  soundFx.playClick();
+                  setExportDropdownOpen(!exportDropdownOpen);
+                }}
+                title="Select Export Resolution & Options"
+                aria-expanded={exportDropdownOpen}
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+
+            {exportDropdownOpen && (
+              <div className="hud-popover-dropdown export-dropdown">
+                <div className="popover-title">EXPORT TYPE</div>
+                <div className="popover-type-badge">
+                  <span>Format: Image (PNG)</span>
+                </div>
+
+                <div className="popover-title mt-2">OUTPUT RESOLUTION</div>
+                <div className="popover-chips-row">
+                  {[
+                    [1, '1x Native'],
+                    [2, '2x HD'],
+                    [4, '4x 4K UHD'],
+                    [8, '8x Print 8K'],
+                  ].map(([scale, label]) => (
+                    <button
+                      key={scale}
+                      type="button"
+                      className={`popover-chip-btn ${options.exportScale === scale ? 'active' : ''}`}
+                      onClick={() => {
+                        soundFx.playClick();
+                        updateOption('exportScale', scale as number);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="popover-action-btn mt-2.5"
+                  onClick={handleDownloadPng}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download {options.exportScale}x PNG</span>
+                </button>
+
+                {(options.mode === 'ascii' || options.mode === 'hybrid') && (
+                  <>
+                    <div className="popover-title mt-2.5">TEXT & WEB EXPORTS</div>
+                    <div className="popover-text-actions flex gap-1 mt-1">
+                      <button
+                        type="button"
+                        className="popover-mini-btn flex-1"
+                        onClick={() => {
+                          setExportDropdownOpen(false);
+                          handleDownloadTxt();
+                        }}
+                      >
+                        <FileText className="w-3 h-3" />
+                        <span>.TXT</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="popover-mini-btn flex-1"
+                        onClick={() => {
+                          setExportDropdownOpen(false);
+                          handleDownloadHtml();
+                        }}
+                      >
+                        <Code className="w-3 h-3" />
+                        <span>.HTML</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="popover-mini-btn flex-1"
+                        onClick={() => {
+                          setExportDropdownOpen(false);
+                          handleCopyClipboard();
+                        }}
+                      >
+                        <Copy className="w-3 h-3" />
+                        <span>COPY</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Save to Art Vault Button (Placed right next to Export) */}
+          <button
+            type="button"
+            className="btn-hud-save"
+            onClick={handleSaveToVault}
+            title="Save rendered creation to your Art Vault library"
+          >
+            <BookmarkPlus className="w-3.5 h-3.5 text-pink-400" />
+            <span>Save</span>
+          </button>
+        </div>
       </div>
 
-      {/* Main Canvas Area */}
+      {/* ─────────────────────────────────────────────────────────── */}
+      {/* MAIN CANVAS AREA                                            */}
+      {/* ─────────────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
         className={`viewport-screen-container ${options.crtEffect ? 'crt-screen-effect' : ''}`}
@@ -127,7 +530,7 @@ export const Viewport: React.FC<ViewportProps> = ({
         {/* Hidden Source Canvas */}
         <canvas ref={sourceCanvasRef} className="hidden-source-canvas" />
 
-        {/* Output Canvas (ALWAYS MOUNTED so renderPipeline() never loses target canvas reference) */}
+        {/* Output Canvas */}
         <div
           className="canvas-wrapper-center"
           style={{
@@ -172,7 +575,7 @@ export const Viewport: React.FC<ViewportProps> = ({
                 className="btn-idle-action secondary"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onWebcamClick();
+                  setSourceType('webcam');
                 }}
               >
                 <Camera className="w-4 h-4" />
@@ -226,4 +629,3 @@ export const Viewport: React.FC<ViewportProps> = ({
     </div>
   );
 };
-

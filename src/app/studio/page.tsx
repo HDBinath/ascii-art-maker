@@ -74,13 +74,24 @@ export default function StudioPage() {
 
   // Cached Export Text & Stats
   const [plainText, setPlainText] = useState<string>('');
-  const [htmlContent, setHtmlContent] = useState<string>('');
+  const lastResultRef = useRef<any>(null);
   const [stats, setStats] = useState({
     width: 0,
     height: 0,
     count: 0,
     unitName: 'CHARS'
   });
+
+  // Get HTML export content on-demand
+  const getHtmlContent = useCallback(() => {
+    if (!lastResultRef.current) return '';
+    if (options.mode === 'hybrid') {
+      return generateHybridHtmlExport(lastResultRef.current, options.hybridTwoTone);
+    } else if (options.mode === 'ascii') {
+      return generateHtmlExport(lastResultRef.current, options.asciiColorMode);
+    }
+    return '';
+  }, [options.mode, options.hybridTwoTone, options.asciiColorMode]);
 
   // Toast state
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -102,6 +113,7 @@ export default function StudioPage() {
       processDitheredPixelArt(srcCanvas, tgtCanvas, options);
       const lowW = Math.max(1, Math.floor(srcCanvas.width / options.pixelSize));
       const lowH = Math.max(1, Math.floor(srcCanvas.height / options.pixelSize));
+      lastResultRef.current = null;
       setStats({
         width: lowW,
         height: lowH,
@@ -109,12 +121,11 @@ export default function StudioPage() {
         unitName: 'PIXELS'
       });
       setPlainText('');
-      setHtmlContent('');
     } else if (options.mode === 'hybrid') {
       const result = processHybridArt(srcCanvas, tgtCanvas, options);
       if (result) {
+        lastResultRef.current = result;
         setPlainText(result.text);
-        setHtmlContent(generateHybridHtmlExport(result, options.hybridTwoTone));
         setStats({
           width: result.cols,
           height: result.rowsCount,
@@ -125,8 +136,8 @@ export default function StudioPage() {
     } else {
       const result = processAsciiArt(srcCanvas, tgtCanvas, options, false);
       if (result) {
+        lastResultRef.current = result;
         setPlainText(result.text);
-        setHtmlContent(generateHtmlExport(result, options.asciiColorMode));
         setStats({
           width: result.cols,
           height: result.rowsCount,
@@ -136,6 +147,17 @@ export default function StudioPage() {
       }
     }
   }, [options]);
+
+  // Frame-throttled render loop to guarantee 60fps buttery smooth slider dragging
+  const renderRequestedRef = useRef(false);
+  const scheduleRender = useCallback(() => {
+    if (renderRequestedRef.current) return;
+    renderRequestedRef.current = true;
+    requestAnimationFrame(() => {
+      renderRequestedRef.current = false;
+      renderPipeline();
+    });
+  }, [renderPipeline]);
 
   // Handle Upscale update on raw source
   const applyUpscaleToSource = useCallback(() => {
@@ -149,20 +171,32 @@ export default function StudioPage() {
     const ctx = srcCanvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(upscaled, 0, 0);
-      renderPipeline();
+      scheduleRender();
     }
-  }, [options.upscaleFactor, options.upscaleMode, renderPipeline]);
+  }, [options.upscaleFactor, options.upscaleMode, scheduleRender]);
 
-  // Re-run pipeline or upscale whenever options change
+  // Track upscale factor/mode separately so regular sliders never trigger full upscale recomputations
+  const prevUpscaleFactorRef = useRef(options.upscaleFactor);
+  const prevUpscaleModeRef = useRef(options.upscaleMode);
+  const prevSourceTypeRef = useRef(sourceType);
+
   useEffect(() => {
-    if (sourceType === 'upload') {
-      if (rawSourceRef.current) {
+    if (sourceType === 'upload' && rawSourceRef.current) {
+      if (
+        prevUpscaleFactorRef.current !== options.upscaleFactor ||
+        prevUpscaleModeRef.current !== options.upscaleMode ||
+        prevSourceTypeRef.current !== sourceType
+      ) {
+        prevUpscaleFactorRef.current = options.upscaleFactor;
+        prevUpscaleModeRef.current = options.upscaleMode;
+        prevSourceTypeRef.current = sourceType;
         applyUpscaleToSource();
-      } else {
-        renderPipeline();
+        return;
       }
     }
-  }, [options, applyUpscaleToSource, renderPipeline, sourceType]);
+    // For all other slider / option changes, render directly without re-upscaling
+    scheduleRender();
+  }, [options, applyUpscaleToSource, scheduleRender, sourceType]);
 
   // Load Image onto source canvas
   const handleImageLoaded = useCallback((img: HTMLImageElement | HTMLCanvasElement) => {
@@ -182,12 +216,9 @@ export default function StudioPage() {
         setPreviewUrl(srcCanvas.toDataURL('image/png'));
       }
       // Render immediately
-      renderPipeline();
-      requestAnimationFrame(() => {
-        renderPipeline();
-      });
+      scheduleRender();
     }
-  }, [options.upscaleFactor, options.upscaleMode, renderPipeline]);
+  }, [options.upscaleFactor, options.upscaleMode, scheduleRender]);
 
   // File Upload Handler with Matrix Scanning Animation
   const handleFileUpload = (file: File) => {
@@ -347,7 +378,7 @@ export default function StudioPage() {
       tgtCanvas.height = 0;
     }
     setPlainText('');
-    setHtmlContent('');
+    lastResultRef.current = null;
     setStats({ width: 0, height: 0, count: 0, unitName: 'CHARS' });
   };
 
@@ -402,15 +433,18 @@ export default function StudioPage() {
       <main className="cyber-fullscreen-viewport">
         <Viewport
           options={options}
+          setOptions={setOptions}
           canvasRef={targetCanvasRef}
           sourceCanvasRef={sourceCanvasRef}
+          sourceType={sourceType}
+          setSourceType={setSourceType}
           hasImage={hasImage}
           isProcessing={isProcessing}
           onUploadClick={triggerUploadClick}
-          onWebcamClick={() => {
-            soundFx.playClick();
-            setSourceType(sourceType === 'webcam' ? 'upload' : 'webcam');
-          }}
+          plainText={plainText}
+          htmlContent=""
+          getHtmlContent={getHtmlContent}
+          onToast={showToast}
           stats={stats}
         />
 
@@ -426,16 +460,10 @@ export default function StudioPage() {
         />
       </main>
 
-      {/* Bottom Control Dock (Consolidated Controls & Exports) */}
+      {/* Bottom Control Dock (Signal Pre-Processing & Algorithmic Controls) */}
       <BottomControlDock
         options={options}
         setOptions={setOptions}
-        sourceType={sourceType}
-        setSourceType={setSourceType}
-        onFileUpload={handleFileUpload}
-        canvasRef={targetCanvasRef}
-        plainText={plainText}
-        htmlContent={htmlContent}
         onToast={showToast}
       />
 
