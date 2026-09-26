@@ -1183,3 +1183,45 @@ body {
   100% { transform: translateX(100%); }
 }
 
+/* ==========================================================================
+   Header Auth Button Styles
+   ========================================================================== */
+.header-auth-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  border-left: 1px solid var(--border-subtle);
+  padding-left: 10px;
+}
+
+.auth-btn-login {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-btn-login:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.auth-btn-register {
+  color: var(--neon-pink);
+  background: rgba(253, 134, 219, 0.12);
+  border-color: rgba(253, 134, 219, 0.35);
+}
+
+.auth-btn-register:hover {
+  background: var(--neon-pink);
+  color: #111111;
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 12px var(--neon-pink-glow);
+}
+
+.cyber-user-button-wrap {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+

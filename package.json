@@ -10,6 +10,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.9.7",
+    "@clerk/themes": "^2.4.57",
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@types/canvas-confetti": "^1.9.0",

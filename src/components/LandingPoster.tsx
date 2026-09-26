@@ -23,6 +23,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { getAllSavedArtworks, deleteArtworkFromVault, SavedArtwork } from '@/lib/artStorage';
+import { SignInButton, SignUpButton, Show, UserButton, useAuth, useClerk } from '@clerk/nextjs';
 import './landingPoster.css';
 
 const FRONT_LILY_URL =
@@ -49,6 +50,8 @@ interface TrailPoint {
 
 export const LandingPoster: React.FC = () => {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const { openSignIn } = useClerk();
   const [isAnim, setIsAnim] = useState<boolean>(true);
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
@@ -138,6 +141,36 @@ export const LandingPoster: React.FC = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Scroll Reveal Animations for Text & Sections
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const observerCallback: IntersectionObserverCallback = (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      root: null,
+      rootMargin: '0px 0px -40px 0px',
+      threshold: 0.08,
+    });
+
+    const targets = document.querySelectorAll(
+      '.reveal-tag, .reveal-title, .reveal-desc, .reveal-on-scroll, .reveal-scale, .reveal-stagger-item, .orbit-feature-card, .workflow-card, .tech-stat-unit, .vault-art-card, .vault-empty-card, .cta-section-wrapper'
+    );
+
+    targets.forEach((el) => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [savedArtworks]);
 
   // Keyboard accessibility for mobile sheet and preview modal
   useEffect(() => {
@@ -344,10 +377,17 @@ export const LandingPoster: React.FC = () => {
     lastSampleRef.current = null;
   };
 
-  const handlePillClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setPillText('Opening Studio...');
-    router.push('/studio');
+  const handleLaunchStudio = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (isSignedIn) {
+      setPillText('Opening Studio...');
+      router.push('/studio');
+    } else {
+      openSignIn({
+        fallbackRedirectUrl: '/studio',
+        forceRedirectUrl: '/studio',
+      });
+    }
   };
 
   return (
@@ -373,17 +413,34 @@ export const LandingPoster: React.FC = () => {
           <li><a href="#home">Home</a></li>
           <li><a href="#gallery">Gallery</a></li>
           <li><a href="#engines">Engines</a></li>
-          <li><Link href="/studio">Studio</Link></li>
+          <li>
+            <button type="button" onClick={handleLaunchStudio} className="sticky-nav-btn-link">
+              Studio
+            </button>
+          </li>
         </ul>
 
-        <button
-          type="button"
-          className="sticky-launch-btn"
-          onClick={handlePillClick}
-        >
-          <span>Launch Studio</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        <div className="sticky-actions-group">
+          <Show when="signed-out">
+            <SignInButton mode="modal" forceRedirectUrl="/studio">
+              <button type="button" className="sticky-auth-btn-ghost">Sign In</button>
+            </SignInButton>
+            <SignUpButton mode="modal" forceRedirectUrl="/studio">
+              <button type="button" className="sticky-auth-btn-pill">Sign Up</button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
+          <button
+            type="button"
+            className="sticky-launch-btn"
+            onClick={handleLaunchStudio}
+          >
+            <span>{isSignedIn ? 'Open Studio' : 'Launch Studio'}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </header>
 
       {/* ====================================================================
@@ -397,41 +454,56 @@ export const LandingPoster: React.FC = () => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Brand Mark (Asterisk SVG) */}
-          <div className="brand-mark" aria-label="Orbit Brand">
-            <svg viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
-              <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
-              <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
-              <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
-            </svg>
+          {/* Clean Integrated Hero Top Bar */}
+          <div className="hero-top-bar">
+            <div className="hero-header-left">
+              <a href="#home" className="hero-brand-mark-link" aria-label="Orbit Brand">
+                <svg viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg" className="hero-asterisk-svg">
+                  <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                  <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                  <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                  <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                </svg>
+              </a>
+
+              <nav className="hero-desktop-nav" role="navigation" aria-label="Main Navigation">
+                <a href="#home" className="hero-nav-item">Home</a>
+                <a href="#gallery" className="hero-nav-item">Gallery</a>
+                <a href="#engines" className="hero-nav-item">Engines</a>
+                <button type="button" onClick={handleLaunchStudio} className="hero-nav-item-btn">
+                  Studio
+                </button>
+              </nav>
+            </div>
+
+            <div className="hero-header-right">
+              <Show when="signed-out">
+                <div className="hero-auth-group">
+                  <SignInButton mode="modal" forceRedirectUrl="/studio">
+                    <button type="button" className="hero-auth-btn-ghost">Sign In</button>
+                  </SignInButton>
+                  <SignUpButton mode="modal" forceRedirectUrl="/studio">
+                    <button type="button" className="hero-auth-btn-pill">Sign Up</button>
+                  </SignUpButton>
+                </div>
+              </Show>
+              <Show when="signed-in">
+                <div className="hero-user-badge">
+                  <UserButton />
+                </div>
+              </Show>
+
+              <button
+                type="button"
+                className="hero-launch-pill"
+                onClick={handleLaunchStudio}
+                aria-label="Launch Studio"
+              >
+                <span>{isSignedIn ? 'Open Studio' : 'Launch Studio'}</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </button>
+            </div>
           </div>
-
-          {/* Primary Desktop Nav */}
-          <ul className="primary-nav" role="navigation" aria-label="Main Navigation">
-            <li className="nav-item-home">
-              <a href="#home">Home</a>
-            </li>
-            <li className="nav-item-resources">
-              <a href="#gallery">Gallery</a>
-            </li>
-            <li className="nav-item-benefits">
-              <a href="#engines">Engines</a>
-            </li>
-            <li className="nav-item-contact">
-              <Link href="/studio">Studio</Link>
-            </li>
-          </ul>
-
-          {/* Action Pill Button (Directs to Studio) */}
-          <button
-            type="button"
-            className="secure-pill"
-            onClick={handlePillClick}
-            aria-label="Direct to Studio"
-          >
-            <span>{pillText}</span>
-          </button>
 
           {/* Wordmark ORBIT */}
           <h1 className="orbit-word" id="orbit-title" aria-label="Orbit">
@@ -517,18 +589,49 @@ export const LandingPoster: React.FC = () => {
               <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
               <a href="#gallery" onClick={() => setMenuOpen(false)}>Gallery</a>
               <a href="#engines" onClick={() => setMenuOpen(false)}>Engines</a>
-              <Link href="/studio" onClick={() => setMenuOpen(false)}>Studio</Link>
+              <button
+                type="button"
+                className="mobile-nav-link-btn text-left"
+                onClick={(e) => {
+                  setMenuOpen(false);
+                  handleLaunchStudio(e);
+                }}
+              >
+                Studio
+              </button>
             </nav>
+
+            <div className="mobile-auth-dock">
+              <Show when="signed-out">
+                <div className="mobile-auth-buttons">
+                  <SignInButton mode="modal" forceRedirectUrl="/studio">
+                    <button type="button" className="mobile-auth-btn" onClick={() => setMenuOpen(false)}>
+                      Sign In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal" forceRedirectUrl="/studio">
+                    <button type="button" className="mobile-auth-btn signup" onClick={() => setMenuOpen(false)}>
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </div>
+              </Show>
+              <Show when="signed-in">
+                <div className="mobile-user-profile-wrap flex items-center justify-center p-2">
+                  <UserButton showName />
+                </div>
+              </Show>
+            </div>
 
             <button
               type="button"
               className="mobile-pill"
               onClick={(e) => {
                 setMenuOpen(false);
-                handlePillClick(e);
+                handleLaunchStudio(e);
               }}
             >
-              {pillText}
+              {isSignedIn ? 'Open Studio' : 'Launch Studio'}
             </button>
           </div>
         </section>
@@ -540,24 +643,24 @@ export const LandingPoster: React.FC = () => {
       <section className="content-section" id="gallery">
         <div className="section-header flex justify-between items-end flex-wrap gap-4">
           <div>
-            <span className="section-tag">01 // ART VAULT</span>
-            <h2 className="section-title">
+            <span className="section-tag reveal-tag">01 // ART VAULT</span>
+            <h2 className="section-title reveal-title">
               Your Saved <span className="section-title-gradient">Creations & Masters</span>
             </h2>
-            <p className="section-desc">
+            <p className="section-desc reveal-desc">
               All rendered ASCII typography and dithered artworks saved directly to your browser's private local vault. Zero cloud uploads, unlimited high-resolution retention.
             </p>
           </div>
-          <Link href="/studio" className="btn-vault-action-primary">
+          <button type="button" onClick={handleLaunchStudio} className="btn-vault-action-primary reveal-on-scroll">
             <BookmarkPlus className="w-4 h-4" />
             <span>Create New in Studio</span>
-          </Link>
+          </button>
         </div>
 
         {savedArtworks.length > 0 ? (
-          <div className="gallery-card-grid">
+          <div className="gallery-card-grid reveal-stagger-group">
             {savedArtworks.map((art) => (
-              <div key={art.id} className="vault-art-card" onClick={() => setPreviewModalArt(art)}>
+              <div key={art.id} className="vault-art-card reveal-stagger-item" onClick={() => setPreviewModalArt(art)}>
                 <div className="vault-art-thumb-wrapper">
                   <img src={art.thumbnailDataUrl} alt={art.title} className="vault-art-thumb" />
                   <div className="vault-art-overlay">
@@ -603,7 +706,7 @@ export const LandingPoster: React.FC = () => {
           </div>
         ) : (
           <div className="vault-empty-showcase">
-            <div className="vault-empty-card">
+            <div className="vault-empty-card reveal-scale">
               <div className="vault-empty-icon-ring">
                 <BookmarkPlus className="w-8 h-8 text-pink-400" />
               </div>
@@ -611,10 +714,10 @@ export const LandingPoster: React.FC = () => {
               <p className="vault-empty-desc">
                 Launch the studio to generate your first ASCII art or dithered pixel transformation and hit <strong>SAVE</strong> in the export dock.
               </p>
-              <Link href="/studio" className="btn-cta-launch-sm">
+              <button type="button" onClick={handleLaunchStudio} className="btn-cta-launch-sm">
                 <span>Open Studio to Generate</span>
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </div>
         )}
@@ -625,18 +728,18 @@ export const LandingPoster: React.FC = () => {
           ==================================================================== */}
       <section className="content-section" id="engines">
         <div className="section-header">
-          <span className="section-tag">02 // ALGORITHMIC ENGINES</span>
-          <h2 className="section-title">
+          <span className="section-tag reveal-tag">02 // ALGORITHMIC ENGINES</span>
+          <h2 className="section-title reveal-title">
             Computational Artistry <span className="section-title-gradient">Engineered at Scale</span>
           </h2>
-          <p className="section-desc">
+          <p className="section-desc reveal-desc">
             Convert any photograph, graphic, or live camera feed into retro-futuristic ASCII typography and mathematical error-diffused dithered matrices in real-time.
           </p>
         </div>
 
-        <div className="orbit-grid-4">
+        <div className="orbit-grid-4 reveal-stagger-group">
           {/* Card 1 */}
-          <div className="orbit-feature-card">
+          <div className="orbit-feature-card reveal-stagger-item">
             <div>
               <div className="card-num">MODE // 01</div>
               <div className="card-icon-wrap">
@@ -655,7 +758,7 @@ export const LandingPoster: React.FC = () => {
           </div>
 
           {/* Card 2 */}
-          <div className="orbit-feature-card">
+          <div className="orbit-feature-card reveal-stagger-item">
             <div>
               <div className="card-num">MODE // 02</div>
               <div className="card-icon-wrap">
@@ -674,7 +777,7 @@ export const LandingPoster: React.FC = () => {
           </div>
 
           {/* Card 3 */}
-          <div className="orbit-feature-card">
+          <div className="orbit-feature-card reveal-stagger-item">
             <div>
               <div className="card-num">MODE // 03</div>
               <div className="card-icon-wrap">
@@ -693,7 +796,7 @@ export const LandingPoster: React.FC = () => {
           </div>
 
           {/* Card 4 */}
-          <div className="orbit-feature-card">
+          <div className="orbit-feature-card reveal-stagger-item">
             <div>
               <div className="card-num">MODE // 04</div>
               <div className="card-icon-wrap">
@@ -718,17 +821,17 @@ export const LandingPoster: React.FC = () => {
           ==================================================================== */}
       <section className="content-section">
         <div className="section-header">
-          <span className="section-tag">03 // CREATIVE WORKFLOW</span>
-          <h2 className="section-title">
+          <span className="section-tag reveal-tag">03 // CREATIVE WORKFLOW</span>
+          <h2 className="section-title reveal-title">
             From Raw Pixels to <span className="section-title-gradient">Master Art in Seconds</span>
           </h2>
-          <p className="section-desc">
+          <p className="section-desc reveal-desc">
             A streamlined, responsive workstation designed for designers, developers, digital artists, and creative technologists.
           </p>
         </div>
 
-        <div className="workflow-grid">
-          <div className="workflow-card">
+        <div className="workflow-grid reveal-stagger-group">
+          <div className="workflow-card reveal-stagger-item">
             <div className="workflow-card-step">1</div>
             <h3 className="workflow-card-title">Ingest Any Source</h3>
             <p className="workflow-card-text">
@@ -736,7 +839,7 @@ export const LandingPoster: React.FC = () => {
             </p>
           </div>
 
-          <div className="workflow-card">
+          <div className="workflow-card reveal-stagger-item">
             <div className="workflow-card-step">2</div>
             <h3 className="workflow-card-title">Modulate & Upscale</h3>
             <p className="workflow-card-text">
@@ -744,7 +847,7 @@ export const LandingPoster: React.FC = () => {
             </p>
           </div>
 
-          <div className="workflow-card">
+          <div className="workflow-card reveal-stagger-item">
             <div className="workflow-card-step">3</div>
             <h3 className="workflow-card-title">Save & Export Masters</h3>
             <p className="workflow-card-text">
@@ -758,26 +861,26 @@ export const LandingPoster: React.FC = () => {
           5. TECHNICAL ARCHITECTURE MATRIX
           ==================================================================== */}
       <section className="content-section">
-        <div className="tech-matrix-box">
-          <div className="tech-stat-unit">
+        <div className="tech-matrix-box reveal-stagger-group">
+          <div className="tech-stat-unit reveal-stagger-item">
             <span className="tech-stat-value">100%</span>
             <span className="tech-stat-label">Local Compute</span>
             <span className="tech-stat-sub">Zero images uploaded to servers. All pixel processing occurs client-side in browser memory.</span>
           </div>
 
-          <div className="tech-stat-unit">
+          <div className="tech-stat-unit reveal-stagger-item">
             <span className="tech-stat-value">0 ms</span>
             <span className="tech-stat-label">Queue Latency</span>
             <span className="tech-stat-sub">Instantaneous rendering powered by HTML5 Canvas and WebGL acceleration.</span>
           </div>
 
-          <div className="tech-stat-unit">
+          <div className="tech-stat-unit reveal-stagger-item">
             <span className="tech-stat-value">8K UHD</span>
             <span className="tech-stat-label">Max Canvas Buffer</span>
             <span className="tech-stat-sub">Up to 8192×8192px multi-megabyte lossless binary export streaming.</span>
           </div>
 
-          <div className="tech-stat-unit">
+          <div className="tech-stat-unit reveal-stagger-item">
             <span className="tech-stat-value">IndexedDB</span>
             <span className="tech-stat-label">Local Vault Storage</span>
             <span className="tech-stat-sub">Persistent offline library of your generated artworks and exact parameters.</span>
@@ -788,27 +891,27 @@ export const LandingPoster: React.FC = () => {
       {/* ====================================================================
           6. FINAL CALL TO ACTION & FOOTER
           ==================================================================== */}
-      <div className="cta-section-wrapper">
-        <svg className="cta-asterisk" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div className="cta-section-wrapper reveal-on-scroll">
+        <svg className="cta-asterisk reveal-scale" viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
           <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
           <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
           <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
         </svg>
 
-        <h2 className="cta-heading">
+        <h2 className="cta-heading reveal-title">
           Create Art from <span className="section-title-gradient">Pixels & Typography</span>
         </h2>
-        <p className="cta-sub">
-          Launch the full-screen studio now. No accounts required, completely private, offline-ready, and free.
+        <p className="cta-sub reveal-desc">
+          Launch the full-screen studio now. Transform any photo or live webcam feed into retro dithered pixel art & neural ASCII typography.
         </p>
 
         <button
           type="button"
-          className="btn-cta-launch"
-          onClick={handlePillClick}
+          className="btn-cta-launch reveal-on-scroll"
+          onClick={handleLaunchStudio}
         >
-          <span>Launch Studio Now</span>
+          <span>{isSignedIn ? 'Open Studio Now' : 'Launch Studio Now'}</span>
           <ArrowRight className="w-5 h-5" />
         </button>
       </div>
@@ -827,7 +930,9 @@ export const LandingPoster: React.FC = () => {
         <div className="footer-links">
           <a href="#home">Back to Top ↑</a>
           <a href="#gallery">Vault Gallery</a>
-          <Link href="/studio">Open Studio</Link>
+          <button type="button" onClick={handleLaunchStudio} className="footer-link-btn">
+            Open Studio
+          </button>
         </div>
       </footer>
 

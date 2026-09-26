@@ -4,7 +4,8 @@ import React from 'react';
 import { AppMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
 import Link from 'next/link';
-import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft } from 'lucide-react';
+import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft, LogIn, UserPlus } from 'lucide-react';
+import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
 
 interface HeaderProps {
   mode: AppMode;
@@ -116,7 +117,31 @@ export const Header: React.FC<HeaderProps> = ({
           {audioEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
           <span>SFX</span>
         </button>
+
+        {/* Clerk Auth Section */}
+        <div className="header-auth-container flex items-center gap-2 ml-1">
+          <Show when="signed-out">
+            <SignInButton mode="modal">
+              <button type="button" className="btn-utility auth-btn-login" title="Sign In">
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button type="button" className="btn-utility auth-btn-register" title="Sign Up">
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Sign Up</span>
+              </button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <div className="cyber-user-button-wrap flex items-center">
+              <UserButton />
+            </div>
+          </Show>
+        </div>
       </div>
     </header>
   );
 };
+

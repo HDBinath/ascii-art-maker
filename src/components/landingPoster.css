@@ -156,103 +156,157 @@ html {
   height: 100%;
 }
 
-/* Brand Mark (Asterisk) */
-.brand-mark {
+/* ==========================================================================
+   Hero Top Bar Navigation & Actions
+   ========================================================================== */
+.hero-top-bar {
   position: absolute;
-  top: 2.141745dvh;
-  left: 3.854167vw;
-  width: clamp(34px, min(3.4375vw, 5.2dvh), 66px);
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: clamp(16px, 2.8dvh, 32px) clamp(20px, 3.8vw, 56px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hero-header-left {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 2.6vw, 40px);
+  pointer-events: auto;
+}
+
+.hero-brand-mark-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.hero-asterisk-svg {
+  width: clamp(32px, 3.2vw, 48px);
   height: auto;
   aspect-ratio: 66 / 62;
-  z-index: 4;
-  pointer-events: auto;
-}
-
-.brand-mark svg {
-  width: 100%;
-  height: 100%;
   display: block;
+  transition: transform 0.25s ease;
 }
 
-/* Primary Nav */
-.primary-nav {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 4;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.hero-brand-mark-link:hover .hero-asterisk-svg {
+  transform: rotate(45deg) scale(1.05);
 }
 
-.primary-nav li {
-  position: absolute;
-  top: 3.426791dvh;
-  margin: 0;
-  padding: 0;
+.hero-desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2vw, 32px);
 }
 
-.primary-nav a {
-  display: inline-block;
-  pointer-events: auto;
-  color: #ffffff;
+.hero-nav-item,
+.hero-nav-item-btn {
+  color: #c4c4c4;
   text-decoration: none;
-  font-size: clamp(13px, min(1.302083vw, 2.05dvh), 25px);
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  transform-origin: left center;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  font-size: clamp(13px, 1.05vw, 15px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
-.primary-nav a:hover {
-  opacity: 0.75;
+.hero-nav-item:hover,
+.hero-nav-item-btn:hover {
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
 }
 
-.nav-item-home { left: 10.104167vw; }
-.nav-item-home a { transform: scaleX(1.165); }
+.hero-header-right {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.2vw, 16px);
+  pointer-events: auto;
+}
 
-.nav-item-resources { left: 17.526042vw; }
-.nav-item-resources a { transform: scaleX(1.052); }
+.hero-auth-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-.nav-item-benefits { left: 27.578125vw; }
-.nav-item-benefits a { transform: scaleX(1.126); }
+.hero-auth-btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #e5e5e5;
+  border-radius: 999px;
+  padding: clamp(6px, 0.9dvh, 8px) clamp(14px, 1.2vw, 18px);
+  font-size: clamp(12px, 0.9vw, 13px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-.nav-item-contact { left: 36.171875vw; }
-.nav-item-contact a { transform: scaleX(1.168); }
+.hero-auth-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
 
-/* Secure System / Studio Pill Button */
-.secure-pill {
-  position: absolute;
-  top: 2.336449dvh;
-  right: 7.5vw;
-  height: clamp(34px, 4.439252dvh, 57px);
-  padding: 0 clamp(18px, 2.2vw, 36px);
-  background-color: #ffffff;
+.hero-auth-btn-pill {
+  background: rgba(253, 134, 219, 0.12);
+  border: 1px solid rgba(253, 134, 219, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--neon-pink-light);
+  border-radius: 999px;
+  padding: clamp(6px, 0.9dvh, 8px) clamp(14px, 1.2vw, 20px);
+  font-size: clamp(12px, 0.9vw, 13px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hero-auth-btn-pill:hover {
+  background: var(--gradient-pink);
+  color: #161616;
+  border-color: transparent;
+  box-shadow: 0 0 16px var(--neon-pink-glow);
+}
+
+.hero-user-badge {
+  display: flex;
+  align-items: center;
+}
+
+.hero-launch-pill {
+  background: #ffffff;
   color: #161616;
   border-radius: 999px;
   border: none;
   cursor: pointer;
-  z-index: 4;
+  padding: clamp(8px, 1.1dvh, 11px) clamp(18px, 1.6vw, 26px);
+  font-size: clamp(13px, 0.95vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  font-size: clamp(13px, min(1.25vw, 1.95dvh), 22px);
-  font-weight: 500;
-  letter-spacing: 0.026923em;
-  text-decoration: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  transition: transform 0.22s var(--orb-reveal), background-color 0.2s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 18px rgba(253, 134, 219, 0.2);
+  transition: transform 0.2s var(--orb-reveal), box-shadow 0.2s ease, background-color 0.2s ease;
   white-space: nowrap;
 }
 
-.secure-pill:hover {
+.hero-launch-pill:hover {
   transform: scale(1.04);
-  background-color: #f0f0f0;
+  background-color: #f7f7f7;
   box-shadow: 0 6px 28px rgba(253, 134, 219, 0.45);
 }
 
-.secure-pill:active {
+.hero-launch-pill:active {
   transform: scale(0.97);
 }
 
@@ -1321,8 +1375,7 @@ html {
 }
 
 @media (max-width: 900px), (max-aspect-ratio: 4/5) {
-  .primary-nav,
-  .secure-pill {
+  .hero-top-bar {
     display: none;
   }
 
@@ -1379,3 +1432,273 @@ html {
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   Interactive Links & Sticky Nav Buttons
+   ========================================================================== */
+.sticky-nav-btn-link {
+  background: none;
+  border: none;
+  color: #a3a3a3;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.sticky-nav-btn-link:hover {
+  color: #ffffff;
+}
+
+.footer-link-btn {
+  background: none;
+  border: none;
+  color: #737373;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.footer-link-btn:hover {
+  color: #ffffff;
+}
+
+.mobile-nav-link-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+}
+
+/* ==========================================================================
+   Sticky Header Actions
+   ========================================================================== */
+.sticky-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sticky-auth-btn-ghost {
+  background: transparent;
+  color: #a3a3a3;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sticky-auth-btn-ghost:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sticky-auth-btn-pill {
+  background: rgba(253, 134, 219, 0.15);
+  color: var(--neon-pink-light);
+  border: 1px solid rgba(253, 134, 219, 0.35);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sticky-auth-btn-pill:hover {
+  background: var(--gradient-pink);
+  color: #161616;
+  border-color: transparent;
+  box-shadow: 0 0 15px var(--neon-pink-glow);
+}
+
+.mobile-auth-dock {
+  width: 100%;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  margin: 12px 0;
+}
+
+.mobile-auth-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.mobile-auth-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  color: #ffffff;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+.mobile-auth-btn.signup {
+  background: var(--gradient-pink);
+  color: #161616;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Scroll-Driven Text & Content Reveal Animations
+   ========================================================================== */
+.reveal-tag {
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-tag.is-revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.reveal-title {
+  opacity: 0;
+  transform: translateY(34px);
+  filter: blur(5px);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.08s, transform 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.08s, filter 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.08s;
+  will-change: opacity, transform, filter;
+}
+
+.reveal-title.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.reveal-desc {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.16s, transform 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.16s;
+  will-change: opacity, transform;
+}
+
+.reveal-desc.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.85) rotate(-6deg);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-scale.is-revealed {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+/* Staggered Grid Items */
+.reveal-stagger-item,
+.orbit-feature-card,
+.workflow-card,
+.tech-stat-unit,
+.vault-art-card {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+  will-change: opacity, transform;
+}
+
+.reveal-stagger-item.is-revealed,
+.orbit-feature-card.is-revealed,
+.workflow-card.is-revealed,
+.tech-stat-unit.is-revealed,
+.vault-art-card.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Automatic Stagger Delays for Grid Children */
+.reveal-stagger-group > :nth-child(1),
+.orbit-grid-4 > :nth-child(1),
+.workflow-grid > :nth-child(1),
+.tech-matrix-box > :nth-child(1),
+.gallery-card-grid > :nth-child(1) {
+  transition-delay: 0.06s;
+}
+
+.reveal-stagger-group > :nth-child(2),
+.orbit-grid-4 > :nth-child(2),
+.workflow-grid > :nth-child(2),
+.tech-matrix-box > :nth-child(2),
+.gallery-card-grid > :nth-child(2) {
+  transition-delay: 0.16s;
+}
+
+.reveal-stagger-group > :nth-child(3),
+.orbit-grid-4 > :nth-child(3),
+.workflow-grid > :nth-child(3),
+.tech-matrix-box > :nth-child(3),
+.gallery-card-grid > :nth-child(3) {
+  transition-delay: 0.26s;
+}
+
+.reveal-stagger-group > :nth-child(4),
+.orbit-grid-4 > :nth-child(4),
+.workflow-grid > :nth-child(4),
+.tech-matrix-box > :nth-child(4),
+.gallery-card-grid > :nth-child(4) {
+  transition-delay: 0.36s;
+}
+
+.reveal-stagger-group > :nth-child(n+5) {
+  transition-delay: 0.44s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-tag,
+  .reveal-title,
+  .reveal-desc,
+  .reveal-on-scroll,
+  .reveal-scale,
+  .reveal-stagger-item,
+  .orbit-feature-card,
+  .workflow-card,
+  .tech-stat-unit,
+  .vault-art-card {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}
+
+
+
