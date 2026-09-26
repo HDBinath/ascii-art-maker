@@ -16,6 +16,7 @@ import { CheckCircle2 } from 'lucide-react';
 export default function StudioPage() {
   const [mode, setMode] = useState<AppMode>('ascii');
   const [sourceType, setSourceType] = useState<'upload' | 'webcam'>('upload');
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [webcamMirrored, setWebcamMirrored] = useState<boolean>(true);
@@ -220,7 +221,17 @@ export default function StudioPage() {
     }
   }, [options.upscaleFactor, options.upscaleMode, scheduleRender]);
 
-  // File Upload Handler with Matrix Scanning Animation
+  // Handle toggle facing mode for mobile camera
+  const handleToggleFacingMode = useCallback(() => {
+    soundFx.playClick();
+    setFacingMode(prev => {
+      const next = prev === 'user' ? 'environment' : 'user';
+      setWebcamMirrored(next === 'user');
+      return next;
+    });
+  }, []);
+
+  // File Upload Handler with Matrix Scanning Animation & High-MP Memory Protection
   const handleFileUpload = (file: File) => {
     if (!file.type.startsWith('image/')) {
       showToast('Please select a valid image file.');
@@ -233,7 +244,22 @@ export default function StudioPage() {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        handleImageLoaded(img);
+        // High-Megapixel Mobile Guard: Clamp to max 2048px to prevent canvas memory blowout
+        const maxDimension = 2048;
+        let finalSource: HTMLImageElement | HTMLCanvasElement = img;
+        if (img.width > maxDimension || img.height > maxDimension) {
+          const scale = maxDimension / Math.max(img.width, img.height);
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = Math.round(img.width * scale);
+          tempCanvas.height = Math.round(img.height * scale);
+          const tempCtx = tempCanvas.getContext('2d');
+          if (tempCtx) {
+            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+            finalSource = tempCanvas;
+          }
+        }
+
+        handleImageLoaded(finalSource);
         setTimeout(() => {
           setIsProcessing(false);
           soundFx.playSuccess();
@@ -264,7 +290,7 @@ export default function StudioPage() {
     webcamMirroredRef.current = webcamMirrored;
   }, [webcamMirrored]);
 
-  // Webcam live frame loop
+  // Webcam live frame loop supporting both Front and Back mobile cameras
   useEffect(() => {
     let stream: MediaStream | null = null;
     let isCancelled = false;
@@ -273,7 +299,12 @@ export default function StudioPage() {
       const startCamera = async () => {
         try {
           const mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+            video: {
+              facingMode: { ideal: facingMode },
+              width: { ideal: 640 },
+              height: { ideal: 480 }
+            },
+            audio: false,
           });
 
           if (isCancelled) {
@@ -333,7 +364,7 @@ export default function StudioPage() {
         } catch (err) {
           if (!isCancelled) {
             console.error('Camera access denied:', err);
-            showToast('Webcam access was denied or unavailable.');
+            showToast('Camera access was denied or unavailable.');
             setSourceType('upload');
           }
         }
@@ -357,7 +388,7 @@ export default function StudioPage() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [sourceType]);
+  }, [sourceType, facingMode]);
 
   // Clear Image
   const handleClearImage = () => {
@@ -438,6 +469,8 @@ export default function StudioPage() {
           sourceCanvasRef={sourceCanvasRef}
           sourceType={sourceType}
           setSourceType={setSourceType}
+          facingMode={facingMode}
+          onToggleFacingMode={handleToggleFacingMode}
           hasImage={hasImage}
           isProcessing={isProcessing}
           onUploadClick={triggerUploadClick}
@@ -456,6 +489,8 @@ export default function StudioPage() {
           onUploadClick={triggerUploadClick}
           webcamMirrored={webcamMirrored}
           setWebcamMirrored={setWebcamMirrored}
+          facingMode={facingMode}
+          onToggleFacingMode={handleToggleFacingMode}
           videoRef={videoRef}
         />
       </main>

@@ -549,14 +549,6 @@ export const LandingPoster: React.FC = () => {
             </span>
           </p>
 
-          {/* Scroll Prompt */}
-          <a href="#gallery" className="hero-scroll-prompt" aria-label="Scroll down to explore gallery">
-            <div className="scroll-mouse-icon">
-              <div className="scroll-wheel-dot" />
-            </div>
-            <span>EXPLORE</span>
-          </a>
-
           {/* Mobile Burger Button */}
           <button
             type="button"

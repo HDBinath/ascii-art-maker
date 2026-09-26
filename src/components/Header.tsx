@@ -72,25 +72,31 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             className={`tab-btn ${mode === 'ascii' ? 'active' : ''}`}
             onClick={() => handleModeChange('ascii')}
+            title="ASCII Art Generation Mode"
           >
             <Terminal className="w-3.5 h-3.5" />
-            <span>ASCII ART</span>
+            <span className="mode-label-full">ASCII ART</span>
+            <span className="mode-label-short">ASCII</span>
           </button>
           <button
             type="button"
             className={`tab-btn ${mode === 'dither' ? 'active' : ''}`}
             onClick={() => handleModeChange('dither')}
+            title="Dithered Pixel Art Generation Mode"
           >
             <Flame className="w-3.5 h-3.5" />
-            <span>DITHERED PIXELS</span>
+            <span className="mode-label-full">DITHERED PIXELS</span>
+            <span className="mode-label-short">DITHER</span>
           </button>
           <button
             type="button"
             className={`tab-btn ${mode === 'hybrid' ? 'active' : ''}`}
             onClick={() => handleModeChange('hybrid')}
+            title="Dither-ASCII Hybrid Mode"
           >
             <Binary className="w-3.5 h-3.5" />
-            <span>DITHER-ASCII HYBRID</span>
+            <span className="mode-label-full">DITHER-ASCII HYBRID</span>
+            <span className="mode-label-short">HYBRID</span>
           </button>
         </nav>
       </div>
@@ -104,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
           title="Toggle CRT Scanlines & Glow"
         >
           <Tv className="w-3.5 h-3.5" />
-          <span>CRT FX</span>
+          <span className="utility-label">CRT FX</span>
         </button>
 
         {/* Audio Toggle */}
@@ -115,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
           title="Toggle Web Audio SFX"
         >
           {audioEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-          <span>SFX</span>
+          <span className="utility-label">SFX</span>
         </button>
 
         {/* Clerk Auth Section */}
@@ -123,11 +129,11 @@ export const Header: React.FC<HeaderProps> = ({
           <Show when="signed-out">
             <Link href="/sign-in" className="btn-utility auth-btn-login" title="Sign In">
               <LogIn className="w-3.5 h-3.5" />
-              <span>Sign In</span>
+              <span className="utility-label">Sign In</span>
             </Link>
             <Link href="/sign-up" className="btn-utility auth-btn-register" title="Sign Up">
               <UserPlus className="w-3.5 h-3.5" />
-              <span>Sign Up</span>
+              <span className="utility-label">Sign Up</span>
             </Link>
           </Show>
           <Show when="signed-in">

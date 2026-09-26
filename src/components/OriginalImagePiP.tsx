@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { soundFx } from '@/lib/soundFx';
-import { Eye, EyeOff, X, UploadCloud, Camera, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, X, SwitchCamera, RefreshCw } from 'lucide-react';
 
 interface OriginalImagePiPProps {
   previewUrl: string | null;
@@ -11,6 +11,8 @@ interface OriginalImagePiPProps {
   onUploadClick: () => void;
   webcamMirrored: boolean;
   setWebcamMirrored: (mirrored: boolean) => void;
+  facingMode?: 'user' | 'environment';
+  onToggleFacingMode?: () => void;
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
@@ -18,9 +20,10 @@ export const OriginalImagePiP: React.FC<OriginalImagePiPProps> = ({
   previewUrl,
   sourceType,
   onClearImage,
-  onUploadClick,
   webcamMirrored,
   setWebcamMirrored,
+  facingMode = 'user',
+  onToggleFacingMode,
   videoRef,
 }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -34,9 +37,20 @@ export const OriginalImagePiP: React.FC<OriginalImagePiPProps> = ({
       <div className="pip-header">
         <div className="pip-title">
           <span className="pip-dot" />
-          <span>ORIGINAL FEED</span>
+          <span>ORIGINAL FEED {sourceType === 'webcam' ? `(${facingMode === 'user' ? 'FRONT' : 'BACK'})` : ''}</span>
         </div>
         <div className="pip-actions">
+          {sourceType === 'webcam' && onToggleFacingMode && (
+            <button
+              type="button"
+              className="btn-pip-tool"
+              onClick={onToggleFacingMode}
+              title={`Switch to ${facingMode === 'user' ? 'Rear (Back)' : 'Front (Selfie)'} Camera`}
+            >
+              <SwitchCamera className="w-3 h-3 text-cyan-400" />
+            </button>
+          )}
+
           {sourceType === 'webcam' && (
             <button
               type="button"

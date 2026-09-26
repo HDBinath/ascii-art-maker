@@ -1725,15 +1725,382 @@ body {
   justify-content: center;
 }
 
+/* ==========================================================================
+   Responsive Label & Display Helpers
+   ========================================================================== */
+.mode-label-short,
+.hud-label-short {
+  display: none;
+}
+
+.mode-label-full,
+.hud-label-full,
+.utility-label {
+  display: inline;
+}
+
+/* ==========================================================================
+   Mobile Segmented Tab Switcher (Bottom Control Dock)
+   ========================================================================== */
+.dock-mobile-tab-bar {
+  display: none;
+  width: 100%;
+  background: rgba(14, 14, 16, 0.96);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 6px 12px;
+  gap: 6px;
+  backdrop-filter: blur(16px);
+}
+
+.dock-mobile-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-sub);
+  font-family: var(--font-hud);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 8px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.dock-mobile-tab-btn:active,
+.dock-mobile-tab-btn.active {
+  background: rgba(253, 134, 219, 0.14);
+  border-color: var(--neon-pink);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--neon-pink-glow);
+}
+
+/* Touch Hit Areas & Gesture Ergonomics */
+.split-divider-handle {
+  touch-action: none;
+}
+
+.split-divider-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -20px;
+  right: -20px;
+  cursor: ew-resize;
+}
+
+.dock-slider {
+  touch-action: none;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+
+/* Tablet (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .cyber-header {
+    padding: 0 16px;
+  }
+  .brand-tag {
+    display: none;
+  }
+  .viewport-hud-bar {
+    padding: 6px 12px;
+  }
+  .bottom-dock-container {
+    padding: 10px 16px;
+    gap: 12px;
+  }
+}
+
+/* Mobile Dock Drawer Switch (max-width: 860px) */
+@media (max-width: 860px) {
+  .bottom-dock-wrapper {
+    flex-direction: column;
+    max-height: 45vh;
+  }
+
+  .dock-mobile-tab-bar {
+    display: flex;
+  }
+
+  .bottom-dock-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-height: auto;
+    max-height: calc(45vh - 50px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    gap: 10px;
+  }
+
+  .dock-divider {
+    display: none;
+  }
+
+  .dock-column {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dock-column.mobile-tab-hidden {
+    display: none !important;
+  }
+
+  .dock-column.mobile-tab-active {
+    display: flex !important;
+    width: 100%;
+    animation: fadeInTab 0.2s ease-out;
+  }
+
+  @keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .dock-sliders-cluster {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 14px;
+    width: 100%;
+  }
+
+  .dock-slider-unit {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dock-palettes-scroll {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    max-height: 180px;
+    width: 100%;
+  }
+
+  .dock-theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .dock-pill-scroll {
+    width: 100%;
+    padding-bottom: 6px;
+  }
+
+  .dock-pill-btn {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+}
+
+/* Smartphone & Compact Screens (max-width: 640px) */
 @media (max-width: 640px) {
+  .cyber-header {
+    height: 52px;
+    padding: 0 10px;
+  }
+
+  .brand-badge {
+    padding-right: 6px;
+    gap: 6px;
+  }
+
+  .brand-title {
+    font-size: 16px;
+  }
+
+  .mode-nav-tabs {
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mode-nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+
+  .mode-label-full {
+    display: none;
+  }
+
+  .mode-label-short {
+    display: inline;
+  }
+
+  .utility-label {
+    display: none;
+  }
+
+  .btn-utility {
+    padding: 5px 8px;
+  }
+
+  .header-auth-container {
+    padding-left: 4px;
+    margin-left: 2px;
+    gap: 4px;
+  }
+
   .auth-top-bar {
     padding: 0 16px;
     height: 60px;
   }
+
   .auth-page-wrapper {
     padding: 70px 16px 30px;
   }
+
+  /* Upper HUD Toolbar Mobile */
+  .viewport-hud-bar {
+    padding: 5px 8px;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .viewport-hud-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hud-label-full {
+    display: none;
+  }
+
+  .hud-label-short {
+    display: inline;
+  }
+
+  .hud-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .hud-meta {
+    font-size: 9px;
+  }
+
+  .hud-popover-dropdown {
+    position: fixed;
+    top: 98px;
+    right: 8px;
+    left: auto;
+    width: calc(100vw - 16px);
+    max-width: 320px;
+    z-index: 1000;
+  }
+
+  .hud-popover-dropdown.scale-dropdown {
+    position: fixed;
+    top: 98px;
+    left: 8px;
+    right: auto;
+    width: calc(100vw - 16px);
+    max-width: 320px;
+  }
+
+  /* Floating PiP Mobile Adaptation */
+  .pip-floating-widget {
+    top: 38px;
+    right: 8px;
+    width: 120px;
+    border-radius: 8px;
+  }
+
+  .pip-floating-widget.collapsed {
+    width: 100px;
+  }
+
+  .pip-header {
+    padding: 4px 6px;
+  }
+
+  .pip-title {
+    font-size: 8px;
+  }
+
+  .pip-body {
+    height: 75px;
+  }
+
+  .btn-pip-tool {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Viewport Idle Dropzone */
+  .viewport-idle-dropzone {
+    padding: 32px 18px;
+    width: 95%;
+  }
+
+  .idle-title {
+    font-size: 16px;
+  }
+
+  .idle-subtitle {
+    font-size: 11px;
+  }
+
+  .idle-quick-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .btn-idle-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Bottom Dock Single Column Sliders on Small Phones */
+  .dock-sliders-cluster {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .dock-slider {
+    height: 6px;
+  }
+
+  .dock-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
 }
+
+/* Extra Small Phones (max-width: 400px) */
+@media (max-width: 400px) {
+  .brand-title {
+    display: none;
+  }
+  .btn-utility {
+    padding: 4px 6px;
+  }
+  .tab-btn {
+    padding: 3px 6px;
+    font-size: 8px;
+  }
+}
+
 
 
 

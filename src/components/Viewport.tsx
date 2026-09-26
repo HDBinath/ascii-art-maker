@@ -21,6 +21,7 @@ import {
   Layers,
   Sparkles,
   Scaling,
+  SwitchCamera,
 } from 'lucide-react';
 
 interface ViewportProps {
@@ -30,6 +31,8 @@ interface ViewportProps {
   sourceCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   sourceType: 'upload' | 'webcam';
   setSourceType: (type: 'upload' | 'webcam') => void;
+  facingMode?: 'user' | 'environment';
+  onToggleFacingMode?: () => void;
   hasImage: boolean;
   isProcessing?: boolean;
   onUploadClick: () => void;
@@ -54,6 +57,8 @@ export const Viewport: React.FC<ViewportProps> = ({
   sourceCanvasRef,
   sourceType,
   setSourceType,
+  facingMode = 'user',
+  onToggleFacingMode,
   hasImage,
   isProcessing = false,
   onUploadClick,
@@ -270,7 +275,8 @@ export const Viewport: React.FC<ViewportProps> = ({
             title="Upload source image file"
           >
             <UploadCloud className="w-3.5 h-3.5 text-green-400" />
-            <span>Upload Image</span>
+            <span className="hud-label-full">Upload Image</span>
+            <span className="hud-label-short">Upload</span>
           </button>
 
           <button
@@ -283,8 +289,20 @@ export const Viewport: React.FC<ViewportProps> = ({
             title="Toggle live camera feed"
           >
             <Camera className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{sourceType === 'webcam' ? 'Stop Camera' : 'Camera'}</span>
+            <span>{sourceType === 'webcam' ? 'Stop' : 'Camera'}</span>
           </button>
+
+          {sourceType === 'webcam' && onToggleFacingMode && (
+            <button
+              type="button"
+              className="btn-hud-tool"
+              onClick={onToggleFacingMode}
+              title={`Switch camera to ${facingMode === 'user' ? 'Rear' : 'Front'}`}
+            >
+              <SwitchCamera className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hud-label-full">{facingMode === 'user' ? 'Rear' : 'Front'}</span>
+            </button>
+          )}
 
           {/* Input Upscale Popover Menu */}
           <div className="relative" ref={scaleMenuRef}>
@@ -408,7 +426,8 @@ export const Viewport: React.FC<ViewportProps> = ({
                 title={`Export ${options.exportScale}x High-Resolution PNG Image`}
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Export PNG ({options.exportScale}x)</span>
+                <span className="hud-label-full">Export PNG ({options.exportScale}x)</span>
+                <span className="hud-label-short">Export ({options.exportScale}x)</span>
               </button>
 
               <button

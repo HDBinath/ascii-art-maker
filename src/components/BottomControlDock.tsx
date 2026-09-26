@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AppOptions, CharsetName, DitherAlgorithm, PaletteName } from '@/lib/types';
 import { PRESET_PALETTES } from '@/lib/palettes';
 import { DENSITY_CHARSETS } from '@/lib/asciiEngine';
@@ -23,6 +23,8 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
   options,
   setOptions,
 }) => {
+  const [activeMobileTab, setActiveMobileTab] = useState<'signal' | 'algo' | 'palette'>('signal');
+
   const updateOption = <K extends keyof AppOptions>(key: K, value: AppOptions[K]) => {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
@@ -34,9 +36,46 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
 
   return (
     <footer className="bottom-dock-wrapper">
+      {/* Mobile Segmented Tab Switcher (< 860px) */}
+      <div className="dock-mobile-tab-bar">
+        <button
+          type="button"
+          className={`dock-mobile-tab-btn ${activeMobileTab === 'signal' ? 'active' : ''}`}
+          onClick={() => {
+            soundFx.playClick();
+            setActiveMobileTab('signal');
+          }}
+        >
+          <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+          <span>SIGNAL</span>
+        </button>
+        <button
+          type="button"
+          className={`dock-mobile-tab-btn ${activeMobileTab === 'algo' ? 'active' : ''}`}
+          onClick={() => {
+            soundFx.playClick();
+            setActiveMobileTab('algo');
+          }}
+        >
+          <Layers className="w-3.5 h-3.5 text-pink-400" />
+          <span>{options.mode === 'dither' ? 'DITHER & PIXELS' : options.mode === 'hybrid' ? 'GRID & ENGINE' : 'GRID & CHARS'}</span>
+        </button>
+        <button
+          type="button"
+          className={`dock-mobile-tab-btn ${activeMobileTab === 'palette' ? 'active' : ''}`}
+          onClick={() => {
+            soundFx.playClick();
+            setActiveMobileTab('palette');
+          }}
+        >
+          <Palette className="w-3.5 h-3.5 text-amber-400" />
+          <span>{options.mode === 'ascii' ? 'THEMES' : 'PALETTES'}</span>
+        </button>
+      </div>
+
       <div className="bottom-dock-container">
         {/* 1. SIGNAL PRE-PROCESSING & OPTICAL CONTROLS */}
-        <div className="dock-column dock-gain-col">
+        <div className={`dock-column dock-gain-col ${activeMobileTab === 'signal' ? 'mobile-tab-active' : 'mobile-tab-hidden'}`}>
           <span className="dock-col-label">
             <Sliders className="w-3.5 h-3.5 text-cyan-400" /> SIGNAL PRE-PROCESSING
           </span>
@@ -150,7 +189,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
         {options.mode === 'dither' ? (
           <>
             {/* Dither Algorithm & Error Diffusion Controls */}
-            <div className="dock-column dock-main-controls-col">
+            <div className={`dock-column dock-main-controls-col ${activeMobileTab === 'algo' ? 'mobile-tab-active' : 'mobile-tab-hidden'}`}>
               <span className="dock-col-label">
                 <Layers className="w-3.5 h-3.5 text-pink-400" /> DITHER ALGORITHM & DIFFUSION
               </span>
@@ -267,7 +306,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
             <div className="dock-divider" />
 
             {/* Dither Palette Selector */}
-            <div className="dock-column dock-palettes-col">
+            <div className={`dock-column dock-palettes-col ${activeMobileTab === 'palette' ? 'mobile-tab-active' : 'mobile-tab-hidden'}`}>
               <span className="dock-col-label">
                 <Palette className="w-3.5 h-3.5 text-amber-400" /> OKLAB COLOR PALETTES
               </span>
@@ -296,7 +335,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
         ) : options.mode === 'hybrid' ? (
           <>
             {/* Dither-ASCII Hybrid Controls */}
-            <div className="dock-column dock-main-controls-col">
+            <div className={`dock-column dock-main-controls-col ${activeMobileTab === 'algo' ? 'mobile-tab-active' : 'mobile-tab-hidden'}`}>
               <span className="dock-col-label">
                 <Wand2 className="w-3.5 h-3.5 text-pink-400" /> DITHER-ASCII HYBRID PHOSPHOR
               </span>
@@ -382,7 +421,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
             <div className="dock-divider" />
 
             {/* Hybrid Palette Selector */}
-            <div className="dock-column dock-palettes-col">
+            <div className={`dock-column dock-palettes-col ${activeMobileTab === 'palette' ? 'mobile-tab-active' : 'mobile-tab-hidden'}`}>
               <span className="dock-col-label">
                 <Palette className="w-3.5 h-3.5 text-amber-400" /> CHROMINANCE PALETTES
               </span>
@@ -411,7 +450,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
         ) : (
           <>
             {/* ASCII Grid & Optical Edge Controls */}
-            <div className="dock-column dock-main-controls-col">
+            <div className={`dock-column dock-main-controls-col ${activeMobileTab === 'algo' ? 'mobile-tab-active' : 'mobile-tab-hidden'}`}>
               <span className="dock-col-label">
                 <Type className="w-3.5 h-3.5 text-green-400" /> ASCII GRID & EDGE INJECTION
               </span>
@@ -550,7 +589,7 @@ export const BottomControlDock: React.FC<BottomControlDockProps> = ({
             <div className="dock-divider" />
 
             {/* ASCII Themes */}
-            <div className="dock-column dock-theme-col">
+            <div className={`dock-column dock-theme-col ${activeMobileTab === 'palette' ? 'mobile-tab-active' : 'mobile-tab-hidden'}`}>
               <span className="dock-col-label">
                 <Palette className="w-3.5 h-3.5 text-pink-400" /> COLOR THEME
               </span>
