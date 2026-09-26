@@ -79,23 +79,21 @@ export const OriginalImagePiP: React.FC<OriginalImagePiPProps> = ({
         </div>
       </div>
 
-      {!collapsed && (
-        <div className="pip-body">
-          {sourceType === 'upload' && previewUrl && (
-            <img src={previewUrl} alt="Original Input" className="pip-preview-image" />
-          )}
+      <div className="pip-body" style={{ display: collapsed ? 'none' : 'block' }}>
+        {sourceType === 'upload' && previewUrl && (
+          <img src={previewUrl} alt="Original Input" className="pip-preview-image" />
+        )}
 
-          {sourceType === 'webcam' && (
-            <video
-              ref={videoRef}
-              playsInline
-              autoPlay
-              muted
-              className={`pip-video-stream ${webcamMirrored ? 'mirrored' : ''}`}
-            />
-          )}
-        </div>
-      )}
+        {sourceType === 'webcam' && (
+          <video
+            ref={videoRef}
+            playsInline
+            autoPlay
+            muted
+            className={`pip-video-stream ${webcamMirrored ? 'mirrored' : ''}`}
+          />
+        )}
+      </div>
     </div>
   );
 };

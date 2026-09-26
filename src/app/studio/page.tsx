@@ -222,23 +222,57 @@ export default function StudioPage() {
     reader.readAsDataURL(file);
   };
 
+  // Stable references for requestAnimationFrame render loop
+  const renderPipelineRef = useRef(renderPipeline);
+  useEffect(() => {
+    renderPipelineRef.current = renderPipeline;
+  }, [renderPipeline]);
+
+  const webcamMirroredRef = useRef(webcamMirrored);
+  useEffect(() => {
+    webcamMirroredRef.current = webcamMirrored;
+  }, [webcamMirrored]);
+
   // Webcam live frame loop
   useEffect(() => {
     let stream: MediaStream | null = null;
-    let isActive = true;
+    let isCancelled = false;
 
     if (sourceType === 'webcam') {
       const startCamera = async () => {
         try {
-          stream = await navigator.mediaDevices.getUserMedia({
+          const mediaStream = await navigator.mediaDevices.getUserMedia({
             video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
           });
-          if (videoRef.current && isActive) {
-            videoRef.current.srcObject = stream;
-            await videoRef.current.play();
+
+          if (isCancelled) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            return;
+          }
+
+          stream = mediaStream;
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = mediaStream;
+            try {
+              const playPromise = videoRef.current.play();
+              if (playPromise !== undefined) {
+                await playPromise.catch((err: any) => {
+                  if (err?.name !== 'AbortError') {
+                    console.warn('Camera play warning:', err);
+                  }
+                });
+              }
+            } catch (err: any) {
+              if (err?.name !== 'AbortError') {
+                console.warn('Camera play error:', err);
+              }
+            }
+
             soundFx.playScan();
 
             const loop = () => {
+              if (isCancelled) return;
               if (videoRef.current && videoRef.current.readyState >= 2) {
                 const srcCanvas = sourceCanvasRef.current;
                 if (srcCanvas) {
@@ -251,13 +285,13 @@ export default function StudioPage() {
                   const ctx = srcCanvas.getContext('2d');
                   if (ctx) {
                     ctx.save();
-                    if (webcamMirrored) {
+                    if (webcamMirroredRef.current) {
                       ctx.translate(vw, 0);
                       ctx.scale(-1, 1);
                     }
                     ctx.drawImage(videoRef.current, 0, 0, vw, vh);
                     ctx.restore();
-                    renderPipeline();
+                    renderPipelineRef.current();
                   }
                 }
               }
@@ -266,22 +300,33 @@ export default function StudioPage() {
             animFrameRef.current = requestAnimationFrame(loop);
           }
         } catch (err) {
-          console.error('Camera access denied:', err);
-          showToast('Webcam access was denied or unavailable.');
-          setSourceType('upload');
+          if (!isCancelled) {
+            console.error('Camera access denied:', err);
+            showToast('Webcam access was denied or unavailable.');
+            setSourceType('upload');
+          }
         }
       };
       startCamera();
     }
 
     return () => {
-      isActive = false;
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      isCancelled = true;
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+      if (videoRef.current) {
+        try {
+          videoRef.current.pause();
+          videoRef.current.srcObject = null;
+        } catch {}
+      }
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [sourceType, webcamMirrored, renderPipeline]);
+  }, [sourceType]);
 
   // Clear Image
   const handleClearImage = () => {
