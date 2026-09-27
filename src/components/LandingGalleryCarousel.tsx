@@ -172,8 +172,8 @@ export const LandingGalleryCarousel: React.FC<LandingGalleryCarouselProps> = ({ 
   return (
     <div className="landing-carousel-container">
       {/* Top Header Controls */}
-      <div className="carousel-header-dock flex items-center justify-between flex-wrap gap-3 mb-6 px-4 md:px-0">
-        <div className="flex items-center gap-3">
+      <div className="carousel-header-dock">
+        <div className="carousel-header-left">
           <div className="carousel-live-pill">
             <span className="live-dot" />
             <span>LIVE COMMUNITY FEED</span>
@@ -183,19 +183,19 @@ export const LandingGalleryCarousel: React.FC<LandingGalleryCarouselProps> = ({ 
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="carousel-header-right">
           <button
             type="button"
             onClick={() => setIsPaused(!isPaused)}
             className="btn-carousel-control"
             title={isPaused ? 'Resume Auto-Scroll' : 'Pause Auto-Scroll'}
           >
-            <span>{isPaused ? '▶ RESUME' : '⏸ PAUSE SCROLL'}</span>
+            <span>{isPaused ? '▶ RESUME' : '⏸ PAUSE'}</span>
           </button>
 
           <Link href="/gallery" className="btn-carousel-explore">
-            <span>Explore Full Gallery</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Explore Gallery</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>

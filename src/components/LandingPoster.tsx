@@ -682,20 +682,20 @@ export const LandingPoster: React.FC = () => {
         </div>
 
         {/* Personal Vault Quick Access Callout */}
-        <div className="account-quick-callout-banner mt-12 p-6 rounded-2xl border border-neutral-800 bg-gradient-to-r from-neutral-900/60 via-pink-950/20 to-neutral-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
+        <div className="account-quick-callout-banner">
+          <div className="callout-banner-left">
+            <div className="callout-banner-icon-box">
               <FolderLock className="w-6 h-6 text-pink-400" />
             </div>
-            <div>
-              <h4 className="text-base font-bold text-white mb-0.5">Looking for your saved images & creations?</h4>
-              <p className="text-xs text-neutral-400">
+            <div className="callout-banner-text-wrap">
+              <h4 className="callout-banner-title">Looking for your saved images & creations?</h4>
+              <p className="callout-banner-desc">
                 Access your personal creator dashboard to view, download, manage likes, and publish locally saved artworks.
               </p>
             </div>
           </div>
 
-          <Link href="/account" className="btn-cta-launch-sm whitespace-nowrap">
+          <Link href="/account" className="btn-cta-launch-sm callout-banner-btn">
             <span>Open My Creations Hub</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
