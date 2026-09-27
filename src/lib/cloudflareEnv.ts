@@ -131,19 +131,26 @@ export async function queryGalleryPostsFromDB(
   mode: string = 'all',
   sort: string = 'newest',
   limit: number = 40,
-  offset: number = 0
+  offset: number = 0,
+  userId?: string
 ): Promise<{ posts: GalleryPost[]; total: number }> {
   const env = getSafeCloudflareEnv();
   const db = getDatabase(env);
   if (db) {
-    let whereClause = '';
+    const conditions: string[] = [];
     const params: any[] = [];
 
     if (mode && mode !== 'all') {
-      whereClause = 'WHERE mode = ?';
+      conditions.push('mode = ?');
       params.push(mode);
     }
 
+    if (userId) {
+      conditions.push('user_id = ?');
+      params.push(userId);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const orderBy = sort === 'likes' ? 'likes_count DESC, created_at DESC' : 'created_at DESC';
 
     const countQuery = `SELECT COUNT(*) as total FROM gallery_posts ${whereClause}`;
@@ -187,6 +194,9 @@ export async function queryGalleryPostsFromDB(
   if (mode && mode !== 'all') {
     filtered = filtered.filter(p => p.mode === mode);
   }
+  if (userId) {
+    filtered = filtered.filter(p => p.userId === userId);
+  }
   if (sort === 'likes') {
     filtered.sort((a, b) => b.likesCount - a.likesCount || b.createdAt - a.createdAt);
   } else {
@@ -220,4 +230,47 @@ export async function incrementPostLikeInDB(postId: string): Promise<number> {
     return found.likesCount;
   }
   return 1;
+}
+
+export async function deleteGalleryPostFromDB(postId: string, userId: string): Promise<boolean> {
+  const env = getSafeCloudflareEnv();
+  const db = getDatabase(env);
+  const bucket = getBucket(env);
+
+  if (db) {
+    // Find post to check ownership and get imageKey
+    const post = await db.prepare(`SELECT user_id, image_key, thumbnail_key FROM gallery_posts WHERE id = ?`)
+      .bind(postId)
+      .first<{ user_id: string; image_key: string; thumbnail_key: string | null }>();
+
+    if (!post || post.user_id !== userId) {
+      return false;
+    }
+
+    // Delete image from R2 if bucket is bound
+    if (bucket && post.image_key) {
+      try {
+        await bucket.delete(post.image_key);
+        if (post.thumbnail_key) {
+          await bucket.delete(post.thumbnail_key);
+        }
+      } catch (err) {
+        console.warn('Error deleting R2 image key:', err);
+      }
+    }
+
+    // Delete record from D1
+    await db.prepare(`DELETE FROM gallery_posts WHERE id = ? AND user_id = ?`).bind(postId, userId).run();
+    return true;
+  }
+
+  // Fallback in memory
+  const index = localMemoryStore.posts.findIndex(p => p.id === postId && p.userId === userId);
+  if (index !== -1) {
+    const post = localMemoryStore.posts[index];
+    if (post.imageKey) localMemoryStore.images.delete(post.imageKey);
+    localMemoryStore.posts.splice(index, 1);
+    return true;
+  }
+  return false;
 }

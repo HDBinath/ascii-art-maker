@@ -4,7 +4,7 @@ import React from 'react';
 import { AppMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
 import Link from 'next/link';
-import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft, LogIn, UserPlus, Globe } from 'lucide-react';
+import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft, LogIn, UserPlus, Globe, FolderLock } from 'lucide-react';
 import { Show, UserButton } from '@clerk/nextjs';
 
 interface HeaderProps {
@@ -54,6 +54,12 @@ export const Header: React.FC<HeaderProps> = ({
           <Globe className="w-3.5 h-3.5 text-pink-400" />
           <span className="utility-label">Gallery</span>
         </Link>
+        <Show when="signed-in">
+          <Link href="/account" className="btn-utility header-account-btn" title="My Saved Arts & Vault">
+            <FolderLock className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="utility-label">My Arts</span>
+          </Link>
+        </Show>
 
         {/* Orbit Brand Mark & Title */}
         <div className="brand-badge">
@@ -142,7 +148,15 @@ export const Header: React.FC<HeaderProps> = ({
           </Show>
           <Show when="signed-in">
             <div className="cyber-user-button-wrap flex items-center">
-              <UserButton />
+              <UserButton>
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="My Arts & Vault"
+                    href="/account"
+                    labelIcon={<FolderLock className="w-4 h-4 text-pink-400" />}
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </div>
           </Show>
         </div>

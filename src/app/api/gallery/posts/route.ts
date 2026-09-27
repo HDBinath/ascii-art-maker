@@ -10,8 +10,9 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get('sort') || 'newest';
     const limit = parseInt(searchParams.get('limit') || '30', 10);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
+    const userId = searchParams.get('userId') || undefined;
 
-    const { posts, total } = await queryGalleryPostsFromDB(mode, sort, limit, offset);
+    const { posts, total } = await queryGalleryPostsFromDB(mode, sort, limit, offset, userId);
 
     // Map image keys to image delivery proxy routes
     const enrichedPosts = posts.map(p => ({

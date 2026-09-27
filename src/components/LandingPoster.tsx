@@ -21,9 +21,12 @@ import {
   Copy,
   ExternalLink,
   Eye,
+  FolderLock,
+  Globe,
 } from 'lucide-react';
 import { getAllSavedArtworks, deleteArtworkFromVault, SavedArtwork } from '@/lib/artStorage';
 import { Show, UserButton, useAuth } from '@clerk/nextjs';
+import { LandingGalleryCarousel } from './LandingGalleryCarousel';
 import './landingPoster.css';
 
 const FRONT_LILY_URL =
@@ -464,8 +467,13 @@ export const LandingPoster: React.FC = () => {
 
               <nav className="hero-desktop-nav" role="navigation" aria-label="Main Navigation">
                 <a href="#home" className="hero-nav-item">Home</a>
-                <a href="#gallery" className="hero-nav-item">Gallery</a>
+                <Link href="/gallery" className="hero-nav-item">Gallery</Link>
                 <a href="#engines" className="hero-nav-item">Engines</a>
+                <Show when="signed-in">
+                  <Link href="/account" className="hero-nav-item text-pink-400 font-semibold">
+                    My Arts
+                  </Link>
+                </Show>
                 <button type="button" onClick={handleLaunchStudio} className="hero-nav-item-btn">
                   Studio
                 </button>
@@ -485,7 +493,15 @@ export const LandingPoster: React.FC = () => {
               </Show>
               <Show when="signed-in">
                 <div className="hero-user-badge">
-                  <UserButton />
+                  <UserButton>
+                    <UserButton.MenuItems>
+                      <UserButton.Link
+                        label="My Arts & Vault"
+                        href="/account"
+                        labelIcon={<FolderLock className="w-4 h-4 text-pink-400" />}
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
                 </div>
               </Show>
 
@@ -575,8 +591,13 @@ export const LandingPoster: React.FC = () => {
           <div className={`mobile-sheet ${menuOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
             <nav className="mobile-nav-links">
               <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
-              <a href="#gallery" onClick={() => setMenuOpen(false)}>Gallery</a>
+              <Link href="/gallery" onClick={() => setMenuOpen(false)}>Gallery</Link>
               <a href="#engines" onClick={() => setMenuOpen(false)}>Engines</a>
+              <Show when="signed-in">
+                <Link href="/account" onClick={() => setMenuOpen(false)} className="text-pink-400 font-semibold">
+                  My Arts & Vault
+                </Link>
+              </Show>
               <button
                 type="button"
                 className="mobile-nav-link-btn text-left"
@@ -602,7 +623,15 @@ export const LandingPoster: React.FC = () => {
               </Show>
               <Show when="signed-in">
                 <div className="mobile-user-profile-wrap flex items-center justify-center p-2">
-                  <UserButton showName />
+                  <UserButton showName>
+                    <UserButton.MenuItems>
+                      <UserButton.Link
+                        label="My Arts & Vault"
+                        href="/account"
+                        labelIcon={<FolderLock className="w-4 h-4 text-pink-400" />}
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
                 </div>
               </Show>
             </div>
@@ -622,89 +651,55 @@ export const LandingPoster: React.FC = () => {
       </div>
 
       {/* ====================================================================
-          2. SAVED CREATIONS & ART VAULT GALLERY SECTION (#gallery)
+          2. COMMUNITY SHOWCASE GALLERY SECTION (#gallery)
           ==================================================================== */}
       <section className="content-section" id="gallery">
-        <div className="section-header flex justify-between items-end flex-wrap gap-4">
+        <div className="section-header flex justify-between items-end flex-wrap gap-4 mb-6">
           <div>
-            <span className="section-tag reveal-tag">01 // ART VAULT</span>
+            <span className="section-tag reveal-tag">01 // COMMUNITY SHOWCASE</span>
             <h2 className="section-title reveal-title">
-              Your Saved <span className="section-title-gradient">Creations & Masters</span>
+              Top 20 Recent <span className="section-title-gradient">Community Masters</span>
             </h2>
             <p className="section-desc reveal-desc">
-              All rendered ASCII typography and dithered artworks saved directly to your browser's private local vault. Zero cloud uploads, unlimited high-resolution retention.
+              Explore the latest generative ASCII matrices, dithered pixels, and hybrid artworks developed and published by creators worldwide.
             </p>
           </div>
-          <button type="button" onClick={handleLaunchStudio} className="btn-vault-action-primary reveal-on-scroll">
-            <BookmarkPlus className="w-4 h-4" />
-            <span>Create New in Studio</span>
-          </button>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Link href="/account" className="btn-vault-action-secondary reveal-on-scroll">
+              <FolderLock className="w-4 h-4 text-pink-400" />
+              <span>My Saved Arts & Vault</span>
+            </Link>
+            <button type="button" onClick={handleLaunchStudio} className="btn-vault-action-primary reveal-on-scroll">
+              <BookmarkPlus className="w-4 h-4" />
+              <span>Create in Studio</span>
+            </button>
+          </div>
         </div>
 
-        {savedArtworks.length > 0 ? (
-          <div className="gallery-card-grid reveal-stagger-group">
-            {savedArtworks.map((art) => (
-              <div key={art.id} className="vault-art-card reveal-stagger-item" onClick={() => setPreviewModalArt(art)}>
-                <div className="vault-art-thumb-wrapper">
-                  <img src={art.thumbnailDataUrl} alt={art.title} className="vault-art-thumb" />
-                  <div className="vault-art-overlay">
-                    <button
-                      type="button"
-                      className="btn-vault-icon"
-                      onClick={(e) => handleDownloadSavedPng(art, e)}
-                      title="Download PNG"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    {art.plainText && (
-                      <button
-                        type="button"
-                        className="btn-vault-icon"
-                        onClick={(e) => handleCopySavedText(art, e)}
-                        title="Copy ASCII Text"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="btn-vault-icon danger"
-                      onClick={(e) => handleDeleteArt(art.id, e)}
-                      title="Delete Artwork"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <span className="vault-mode-badge">{art.mode.toUpperCase()}</span>
-                </div>
+        {/* 2-Row Infinite / Interactive Showcase Carousel */}
+        <div className="community-carousel-wrapper">
+          <LandingGalleryCarousel />
+        </div>
 
-                <div className="vault-art-info">
-                  <h4 className="vault-art-title">{art.title}</h4>
-                  <div className="vault-art-meta">
-                    <span>{art.stats.width} × {art.stats.height} {art.stats.unitName}</span>
-                    <span>{new Date(art.timestamp).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="vault-empty-showcase">
-            <div className="vault-empty-card reveal-scale">
-              <div className="vault-empty-icon-ring">
-                <BookmarkPlus className="w-8 h-8 text-pink-400" />
-              </div>
-              <h3 className="vault-empty-title">Your Art Vault is Empty</h3>
-              <p className="vault-empty-desc">
-                Launch the studio to generate your first ASCII art or dithered pixel transformation and hit <strong>SAVE</strong> in the export dock.
+        {/* Personal Vault Quick Access Callout */}
+        <div className="account-quick-callout-banner mt-12 p-6 rounded-2xl border border-neutral-800 bg-gradient-to-r from-neutral-900/60 via-pink-950/20 to-neutral-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
+              <FolderLock className="w-6 h-6 text-pink-400" />
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-white mb-0.5">Looking for your saved images & creations?</h4>
+              <p className="text-xs text-neutral-400">
+                Access your personal creator dashboard to view, download, manage likes, and publish locally saved artworks.
               </p>
-              <button type="button" onClick={handleLaunchStudio} className="btn-cta-launch-sm">
-                <span>Open Studio to Generate</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
           </div>
-        )}
+
+          <Link href="/account" className="btn-cta-launch-sm whitespace-nowrap">
+            <span>Open My Creations Hub</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
 
       {/* ====================================================================

@@ -21,8 +21,9 @@ import {
 interface GalleryDetailModalProps {
   post: GalleryPost | null;
   onClose: () => void;
-  onLike: (postId: string) => Promise<void>;
-  onToast: (msg: string) => void;
+  onLike?: (postId: string, newLikesCount?: number) => Promise<void> | void;
+  onToast?: (msg: string) => void;
+  onRemix?: (post: GalleryPost) => void;
 }
 
 export const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
@@ -30,20 +31,34 @@ export const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
   onClose,
   onLike,
   onToast,
+  onRemix,
 }) => {
   const [isLiking, setIsLiking] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
+  const [localLikes, setLocalLikes] = useState<number | null>(null);
 
   if (!post) return null;
+
+  const currentLikes = localLikes !== null ? localLikes : post.likesCount;
+
+  const showToast = (msg: string) => {
+    if (onToast) onToast(msg);
+  };
 
   const handleLike = async () => {
     if (isLiking) return;
     setIsLiking(true);
     soundFx.playClick();
+    const nextLikes = (localLikes !== null ? localLikes : post.likesCount) + 1;
+    setLocalLikes(nextLikes);
     try {
-      await onLike(post.id);
+      if (onLike) {
+        await onLike(post.id, nextLikes);
+      } else {
+        await fetch(`/api/gallery/posts/${post.id}/like`, { method: 'POST' });
+      }
     } catch {
-      onToast('Failed to like artwork');
+      showToast('Failed to like artwork');
     } finally {
       setIsLiking(false);
     }
@@ -51,17 +66,17 @@ export const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
 
   const handleCopyAscii = () => {
     if (!post.plainText) {
-      onToast('No plain text ASCII available for this artwork.');
+      showToast('No plain text ASCII available for this artwork.');
       return;
     }
     soundFx.playClick();
     navigator.clipboard.writeText(post.plainText)
       .then(() => {
         setCopiedText(true);
-        onToast('Copied ASCII art to clipboard!');
+        showToast('Copied ASCII art to clipboard!');
         setTimeout(() => setCopiedText(false), 2000);
       })
-      .catch(() => onToast('Clipboard access denied.'));
+      .catch(() => showToast('Clipboard access denied.'));
   };
 
   const handleDownloadImage = () => {
@@ -72,7 +87,7 @@ export const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    onToast('Artwork image downloaded!');
+    showToast('Artwork image downloaded!');
   };
 
   const handleShare = () => {
@@ -86,8 +101,8 @@ export const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
       }).catch(() => {});
     } else if (url) {
       navigator.clipboard.writeText(url)
-        .then(() => onToast('Share link copied to clipboard!'))
-        .catch(() => onToast('Failed to copy link.'));
+        .then(() => showToast('Share link copied to clipboard!'))
+        .catch(() => showToast('Failed to copy link.'));
     }
   };
 
@@ -209,8 +224,8 @@ export const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
                 onClick={handleLike}
                 disabled={isLiking}
               >
-                <Heart className={`w-4 h-4 ${post.isLikedByMe ? 'fill-pink-500 text-pink-500' : 'text-pink-400'}`} />
-                <span>{post.likesCount} {post.likesCount === 1 ? 'Like' : 'Likes'}</span>
+                <Heart className={`w-4 h-4 ${post.isLikedByMe || (localLikes !== null && localLikes > post.likesCount) ? 'fill-pink-500 text-pink-500' : 'text-pink-400'}`} />
+                <span>{currentLikes} {currentLikes === 1 ? 'Like' : 'Likes'}</span>
               </button>
 
               <button
@@ -233,14 +248,28 @@ export const GalleryDetailModal: React.FC<GalleryDetailModalProps> = ({
                 </button>
               )}
 
-              <Link
-                href="/studio"
-                className="btn-detail-action remix-btn"
-                onClick={onClose}
-              >
-                <Sliders className="w-4 h-4 text-cyan-400" />
-                <span>Open Studio</span>
-              </Link>
+              {onRemix ? (
+                <button
+                  type="button"
+                  className="btn-detail-action remix-btn"
+                  onClick={() => {
+                    onClose();
+                    onRemix(post);
+                  }}
+                >
+                  <Sliders className="w-4 h-4 text-cyan-400" />
+                  <span>Remix in Studio</span>
+                </button>
+              ) : (
+                <Link
+                  href="/studio"
+                  className="btn-detail-action remix-btn"
+                  onClick={onClose}
+                >
+                  <Sliders className="w-4 h-4 text-cyan-400" />
+                  <span>Open Studio</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>
