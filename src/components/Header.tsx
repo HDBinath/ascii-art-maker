@@ -4,7 +4,7 @@ import React from 'react';
 import { AppMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
 import Link from 'next/link';
-import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft, LogIn, UserPlus } from 'lucide-react';
+import { Terminal, Tv, Volume2, VolumeX, Flame, Binary, ArrowLeft, LogIn, UserPlus, Globe } from 'lucide-react';
 import { Show, UserButton } from '@clerk/nextjs';
 
 interface HeaderProps {
@@ -49,6 +49,10 @@ export const Header: React.FC<HeaderProps> = ({
         <Link href="/" className="btn-utility header-home-btn" title="Return to Landing Page">
           <ArrowLeft className="w-3.5 h-3.5" />
           <span className="utility-label">Home</span>
+        </Link>
+        <Link href="/gallery" className="btn-utility header-gallery-btn" title="Explore Community Gallery">
+          <Globe className="w-3.5 h-3.5 text-pink-400" />
+          <span className="utility-label">Gallery</span>
         </Link>
 
         {/* Orbit Brand Mark & Title */}

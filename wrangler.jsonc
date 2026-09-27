@@ -10,6 +10,19 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "r2_buckets": [
+    {
+      "binding": "GALLERY_BUCKET",
+      "bucket_name": "orbit-gallery"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "orbit-gallery-db",
+      "database_id": "orbit-gallery-db-id"
+    }
+  ],
   "vars": {
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_YmVsb3ZlZC1iYXNpbGlzay00MjEyLmNsZXJrLmFjY291bnRzLmRldiQ",
     "CLERK_PUBLISHABLE_KEY": "pk_test_YmVsb3ZlZC1iYXNpbGlzay00MjEyLmNsZXJrLmFjY291bnRzLmRldiQ",

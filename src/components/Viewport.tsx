@@ -5,6 +5,7 @@ import { AppOptions, UpscaleMode } from '@/lib/types';
 import { soundFx } from '@/lib/soundFx';
 import { generateHighResExportCanvas, exportCanvasToBlob } from '@/lib/upscaleHelper';
 import { saveArtworkToVault } from '@/lib/artStorage';
+import { PublishGalleryModal } from '@/components/PublishGalleryModal';
 import confetti from 'canvas-confetti';
 import {
   Maximize2,
@@ -22,6 +23,7 @@ import {
   Sparkles,
   Scaling,
   SwitchCamera,
+  Globe,
 } from 'lucide-react';
 
 interface ViewportProps {
@@ -73,6 +75,7 @@ export const Viewport: React.FC<ViewportProps> = ({
   const [activeGlyph, setActiveGlyph] = useState('◈');
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [scaleDropdownOpen, setScaleDropdownOpen] = useState(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -528,6 +531,21 @@ export const Viewport: React.FC<ViewportProps> = ({
                     </div>
                   </>
                 )}
+
+                {/* Community Gallery Sharing */}
+                <div className="popover-title mt-2.5">COMMUNITY SHARING</div>
+                <button
+                  type="button"
+                  className="popover-action-btn community-publish-btn"
+                  onClick={() => {
+                    setExportDropdownOpen(false);
+                    setIsPublishModalOpen(true);
+                  }}
+                  title="Broadcast this creation to the global community gallery"
+                >
+                  <Globe className="w-3.5 h-3.5 text-pink-400" />
+                  <span>Post to Community Gallery</span>
+                </button>
               </div>
             )}
           </div>
@@ -652,6 +670,17 @@ export const Viewport: React.FC<ViewportProps> = ({
           </div>
         )}
       </div>
+
+      {/* Publish to Global Community Gallery Modal */}
+      <PublishGalleryModal
+        isOpen={isPublishModalOpen}
+        onClose={() => setIsPublishModalOpen(false)}
+        canvasRef={canvasRef}
+        options={options}
+        plainText={plainText}
+        stats={stats}
+        onToast={onToast}
+      />
     </div>
   );
 };

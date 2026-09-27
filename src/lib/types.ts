@@ -89,3 +89,29 @@ export interface RGBColor {
   g: number;
   b: number;
 }
+
+export interface GalleryPost {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string | null;
+  title: string;
+  description?: string | null;
+  mode: AppMode;
+  imageKey: string;
+  imageUrl?: string;
+  thumbnailKey?: string | null;
+  plainText?: string | null;
+  width: number;
+  height: number;
+  unitName: string;
+  options?: AppOptions;
+  optionsJson?: string | null;
+  likesCount: number;
+  createdAt: number;
+  isLikedByMe?: boolean;
+}
+
+export type GalleryModeFilter = 'all' | 'ascii' | 'dither' | 'hybrid';
+export type GallerySortOption = 'newest' | 'likes';
+
