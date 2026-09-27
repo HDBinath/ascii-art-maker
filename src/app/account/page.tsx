@@ -18,11 +18,9 @@ import {
   Trash2,
   Download,
   Copy,
-  ExternalLink,
   Flame,
   Binary,
   Terminal,
-  Share2,
   RefreshCw,
   PlusCircle,
   FolderLock,
@@ -180,7 +178,7 @@ export default function AccountPage() {
   const totalLikesReceived = cloudPosts.reduce((acc, p) => acc + (p.likesCount || 0), 0);
 
   return (
-    <div className="account-page-wrapper min-h-screen text-white">
+    <div className="account-page-wrapper">
       {/* Toast Notification */}
       {toastMsg && (
         <div className="gallery-toast-pill animate-fade-in-up">
@@ -191,8 +189,8 @@ export default function AccountPage() {
 
       {/* Account Navigation Header */}
       <header className="account-top-header">
-        <div className="account-header-inner max-w-7xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
+        <div className="account-header-inner">
+          <div className="account-nav-left">
             <Link href="/" className="btn-utility" title="Return to Landing Page">
               <ArrowLeft className="w-4 h-4" />
               <span>Home</span>
@@ -207,31 +205,31 @@ export default function AccountPage() {
             </Link>
           </div>
 
-          <div className="brand-badge-sm flex items-center gap-2">
+          <div className="brand-badge-sm">
             <span className="brand-asterisk-icon-sm">✦</span>
-            <span className="font-mono text-xs tracking-widest text-neutral-400">CREATOR HUB // VAULT</span>
+            <span className="account-header-tag">CREATOR HUB // VAULT</span>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="account-main-container">
         <Show when="signed-out">
-          <div className="account-signin-card max-w-md mx-auto my-16 p-8 text-center bg-neutral-900/80 border border-neutral-800 rounded-2xl backdrop-blur-xl">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-pink-500/20 to-cyan-500/20 border border-pink-500/40 flex items-center justify-center">
+          <div className="account-signin-card">
+            <div className="account-signin-icon-box">
               <User className="w-8 h-8 text-pink-400" />
             </div>
-            <h2 className="text-2xl font-bold font-mono tracking-wider text-white mb-2">
+            <h2 className="account-signin-title">
               CREATOR AUTHENTICATION
             </h2>
-            <p className="text-sm text-neutral-400 mb-6">
+            <p className="account-signin-desc">
               Sign in to manage your published community artworks, view real-time likes metrics, and sync your creations.
             </p>
-            <div className="flex flex-col gap-3">
-              <Link href="/sign-in" className="btn-cta-launch-sm w-full justify-center">
+            <div className="account-signin-btn-group">
+              <Link href="/sign-in" className="btn-cta-launch-sm full-width">
                 <span>Sign In to Account</span>
               </Link>
-              <Link href="/sign-up" className="btn-utility w-full justify-center">
+              <Link href="/sign-up" className="btn-utility full-width">
                 <span>Create New Account</span>
               </Link>
             </div>
@@ -240,65 +238,64 @@ export default function AccountPage() {
 
         <Show when="signed-in">
           {/* User Profile Banner & Stats */}
-          <div className="account-profile-banner mb-10 p-6 md:p-8 rounded-2xl border border-neutral-800/80 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 shadow-2xl relative overflow-hidden">
+          <div className="account-profile-banner">
             <div className="banner-cyber-grid-overlay" />
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              {/* Avatar & User Info */}
-              <div className="flex items-center gap-5">
-                <div className="relative">
-                  {user?.imageUrl ? (
-                    <img
-                      src={user.imageUrl}
-                      alt=""
-                      className="w-20 h-20 rounded-2xl object-cover border-2 border-pink-500/50 shadow-lg shadow-pink-500/20"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-neutral-800 border-2 border-pink-500/50 flex items-center justify-center font-mono text-2xl font-bold text-pink-400">
-                      {user?.firstName?.charAt(0) || 'U'}
-                    </div>
-                  )}
-                  <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center" title="Active Creator">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  </span>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h1 className="text-2xl font-bold text-white tracking-wide">
-                      {user?.fullName || user?.username || 'Cyber Pilot'}
-                    </h1>
-                    <span className="creator-badge-pill">PILOT</span>
+            
+            {/* Left: Avatar & User Info */}
+            <div className="account-user-meta">
+              <div className="account-avatar-box">
+                {user?.imageUrl ? (
+                  <img
+                    src={user.imageUrl}
+                    alt=""
+                    className="account-avatar-img"
+                  />
+                ) : (
+                  <div className="account-avatar-fallback">
+                    {user?.firstName?.charAt(0) || user?.username?.charAt(0) || 'U'}
                   </div>
-                  <p className="text-xs font-mono text-neutral-400">
-                    {user?.primaryEmailAddress?.emailAddress || `@${user?.username || 'user'}`}
-                  </p>
+                )}
+                <div className="account-avatar-status" title="Active Creator">
+                  <span className="status-dot-pulse" />
                 </div>
               </div>
 
-              {/* Creator Metrics */}
-              <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
-                <div className="stat-metric-card">
-                  <div className="stat-metric-val">{cloudPosts.length}</div>
-                  <div className="stat-metric-label">PUBLISHED ARTS</div>
+              <div className="account-user-info">
+                <div className="account-user-title-row">
+                  <h1 className="account-user-name">
+                    {user?.fullName || user?.username || 'Cyber Pilot'}
+                  </h1>
+                  <span className="creator-badge-pill">PILOT</span>
                 </div>
-                <div className="stat-metric-card">
-                  <div className="stat-metric-val text-pink-400 flex items-center gap-1 justify-center">
-                    <Heart className="w-4 h-4 fill-pink-500 text-pink-500" />
-                    <span>{totalLikesReceived}</span>
-                  </div>
-                  <div className="stat-metric-label">COMMUNITY LIKES</div>
+                <p className="account-user-handle">
+                  {user?.primaryEmailAddress?.emailAddress || `@${user?.username || 'user'}`}
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Creator Metrics */}
+            <div className="account-stats-row">
+              <div className="stat-metric-card">
+                <div className="stat-metric-val">{cloudPosts.length}</div>
+                <div className="stat-metric-label">PUBLISHED ARTS</div>
+              </div>
+              <div className="stat-metric-card">
+                <div className="stat-metric-val pink-glow">
+                  <Heart className="w-4 h-4 fill-pink-500 text-pink-500 inline mr-1" />
+                  <span>{totalLikesReceived}</span>
                 </div>
-                <div className="stat-metric-card">
-                  <div className="stat-metric-val text-cyan-400">{vaultArtworks.length}</div>
-                  <div className="stat-metric-label">LOCAL VAULT</div>
-                </div>
+                <div className="stat-metric-label">COMMUNITY LIKES</div>
+              </div>
+              <div className="stat-metric-card">
+                <div className="stat-metric-val cyan-glow">{vaultArtworks.length}</div>
+                <div className="stat-metric-label">LOCAL VAULT</div>
               </div>
             </div>
           </div>
 
           {/* Tab Switcher */}
-          <div className="account-tabs-dock flex items-center justify-between flex-wrap gap-4 mb-8 border-b border-neutral-800 pb-4">
-            <div className="flex items-center gap-2">
+          <div className="account-tabs-dock">
+            <div className="account-tab-btn-group">
               <button
                 type="button"
                 onClick={() => setActiveTab('published')}
@@ -319,21 +316,21 @@ export default function AccountPage() {
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="account-tab-actions">
               <button
                 type="button"
                 onClick={() => {
                   if (activeTab === 'published') fetchUserCloudPosts();
                   else fetchLocalVault();
                 }}
-                className="btn-utility text-xs"
+                className="btn-utility compact"
                 title="Refresh creations"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Refresh</span>
               </button>
 
-              <Link href="/studio" className="btn-cta-launch-sm text-xs py-2 px-3">
+              <Link href="/studio" className="btn-cta-launch-sm compact">
                 <PlusCircle className="w-4 h-4" />
                 <span>New Creation</span>
               </Link>
@@ -344,9 +341,9 @@ export default function AccountPage() {
               TAB 1: PUBLISHED COMMUNITY POSTS (D1 Database)
               ================================================================= */}
           {activeTab === 'published' && (
-            <div>
+            <div className="account-tab-content">
               {loadingCloud ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="account-art-grid">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="account-art-skeleton animate-pulse" />
                   ))}
@@ -356,21 +353,21 @@ export default function AccountPage() {
                   <div className="account-empty-icon-box">
                     <CloudUpload className="w-8 h-8 text-pink-400" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">No Published Artworks Yet</h3>
-                  <p className="text-xs text-neutral-400 max-w-md mx-auto mb-6">
+                  <h3 className="account-empty-title">No Published Artworks Yet</h3>
+                  <p className="account-empty-desc">
                     You haven't posted any artwork to the Community Gallery. Launch Studio, create an ASCII or Dither piece, and click <strong>Post to Gallery</strong>.
                   </p>
-                  <Link href="/studio" className="btn-cta-launch-sm inline-flex items-center gap-2">
+                  <Link href="/studio" className="btn-cta-launch-sm inline-flex-btn">
                     <span>Open Studio</span>
                     <Sliders className="w-4 h-4" />
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="account-art-grid">
                   {cloudPosts.map((post) => (
                     <div
                       key={post.id}
-                      className="account-art-card group"
+                      className="account-art-card"
                       onClick={() => setSelectedPost(post)}
                     >
                       <div className="account-art-thumb-wrap">
@@ -422,7 +419,7 @@ export default function AccountPage() {
                         <h4 className="account-art-title">{post.title}</h4>
                         <div className="account-art-meta">
                           <span>{post.width} × {post.height} {post.unitName}</span>
-                          <div className="flex items-center gap-1 text-pink-400">
+                          <div className="account-likes-tag">
                             <Heart className="w-3.5 h-3.5 fill-pink-500 text-pink-500" />
                             <span>{post.likesCount || 0}</span>
                           </div>
@@ -439,9 +436,9 @@ export default function AccountPage() {
               TAB 2: PRIVATE BROWSER VAULT (IndexedDB)
               ================================================================= */}
           {activeTab === 'vault' && (
-            <div>
+            <div className="account-tab-content">
               {loadingVault ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="account-art-grid">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="account-art-skeleton animate-pulse" />
                   ))}
@@ -451,21 +448,21 @@ export default function AccountPage() {
                   <div className="account-empty-icon-box">
                     <FolderLock className="w-8 h-8 text-cyan-400" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">Browser Vault is Empty</h3>
-                  <p className="text-xs text-neutral-400 max-w-md mx-auto mb-6">
+                  <h3 className="account-empty-title">Browser Vault is Empty</h3>
+                  <p className="account-empty-desc">
                     Creations saved to your private browser storage will appear here for fast offline access.
                   </p>
-                  <Link href="/studio" className="btn-cta-launch-sm inline-flex items-center gap-2">
+                  <Link href="/studio" className="btn-cta-launch-sm inline-flex-btn">
                     <span>Open Studio</span>
                     <Sliders className="w-4 h-4" />
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="account-art-grid">
                   {vaultArtworks.map((art) => (
                     <div
                       key={art.id}
-                      className="account-art-card group"
+                      className="account-art-card"
                     >
                       <div className="account-art-thumb-wrap">
                         <img
@@ -510,10 +507,8 @@ export default function AccountPage() {
                       </div>
 
                       <div className="account-art-info">
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <h4 className="account-art-title">{art.title}</h4>
-                        </div>
-                        <div className="account-art-meta mb-3">
+                        <h4 className="account-art-title">{art.title}</h4>
+                        <div className="account-art-meta">
                           <span>{art.stats.width} × {art.stats.height} {art.stats.unitName}</span>
                           <span>{new Date(art.timestamp).toLocaleDateString()}</span>
                         </div>
@@ -522,7 +517,7 @@ export default function AccountPage() {
                         <button
                           type="button"
                           onClick={() => setPublishModalArt(art)}
-                          className="btn-vault-publish-inline w-full"
+                          className="btn-vault-publish-inline"
                         >
                           <CloudUpload className="w-3.5 h-3.5" />
                           <span>Publish to Gallery</span>
