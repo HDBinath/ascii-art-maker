@@ -1,37 +1,47 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "orbit-cyber-studio",
-  "main": ".open-next/worker.js",
-  "compatibility_date": "2026-09-25",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
-  "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  },
-  "r2_buckets": [
-    {
-      "binding": "GALLERY_BUCKET",
-      "bucket_name": "orbit-gallery"
-    }
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "orbit-gallery-db",
-      "database_id": "orbit-gallery-db-id"
-    }
-  ],
-  "vars": {
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_YmVsb3ZlZC1iYXNpbGlzay00MjEyLmNsZXJrLmFjY291bnRzLmRldiQ",
-    "CLERK_PUBLISHABLE_KEY": "pk_test_YmVsb3ZlZC1iYXNpbGlzay00MjEyLmNsZXJrLmFjY291bnRzLmRldiQ",
-    "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
-    "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
-    "NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL": "/studio",
-    "NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL": "/studio"
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "orbit-cyber-studio",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-09-25",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"r2_buckets": [
+		{
+			"binding": "orbit_gallery",
+			"bucket_name": "orbit-gallery",
+			"remote": true
+		},
+		{
+			"binding": "GALLERY_BUCKET",
+			"bucket_name": "orbit-gallery",
+			"remote": true
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "orbit_gallery_db",
+			"database_name": "orbit-gallery-db",
+			"database_id": "dc1a84b8-ab18-489b-9668-f228ef0ec3e8",
+			"remote": true
+		},
+		{
+			"binding": "DB",
+			"database_name": "orbit-gallery-db",
+			"database_id": "dc1a84b8-ab18-489b-9668-f228ef0ec3e8",
+			"remote": true
+		}
+	],
+	"vars": {
+		"NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_YmVsb3ZlZC1iYXNpbGlzay00MjEyLmNsZXJrLmFjY291bnRzLmRldiQ",
+		"CLERK_PUBLISHABLE_KEY": "pk_test_YmVsb3ZlZC1iYXNpbGlzay00MjEyLmNsZXJrLmFjY291bnRzLmRldiQ",
+		"NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
+		"NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
+		"NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL": "/studio",
+		"NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL": "/studio"
+	}
 }
-
-
-

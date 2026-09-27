@@ -8,21 +8,27 @@ const localMemoryStore = {
   likes: new Set<string>(), // `${userId}:${postId}`
 };
 
-export interface CloudflareEnv {
-  GALLERY_BUCKET?: {
-    put: (key: string, value: Uint8Array | ArrayBuffer | ReadableStream, options?: { httpMetadata?: { contentType?: string } }) => Promise<any>;
-    get: (key: string) => Promise<{ body: ReadableStream; httpMetadata?: { contentType?: string } } | null>;
-    delete: (key: string) => Promise<any>;
-  };
-  DB?: {
-    prepare: (query: string) => {
-      bind: (...args: any[]) => {
-        run: () => Promise<{ success: boolean }>;
-        all: <T = any>() => Promise<{ results: T[]; success: boolean }>;
-        first: <T = any>(colName?: string) => Promise<T | null>;
-      };
+export interface R2BucketBinding {
+  put: (key: string, value: Uint8Array | ArrayBuffer | ReadableStream, options?: { httpMetadata?: { contentType?: string } }) => Promise<any>;
+  get: (key: string) => Promise<{ body: ReadableStream; httpMetadata?: { contentType?: string } } | null>;
+  delete: (key: string) => Promise<any>;
+}
+
+export interface D1DatabaseBinding {
+  prepare: (query: string) => {
+    bind: (...args: any[]) => {
+      run: () => Promise<{ success: boolean }>;
+      all: <T = any>() => Promise<{ results: T[]; success: boolean }>;
+      first: <T = any>(colName?: string) => Promise<T | null>;
     };
   };
+}
+
+export interface CloudflareEnv {
+  GALLERY_BUCKET?: R2BucketBinding;
+  orbit_gallery?: R2BucketBinding;
+  DB?: D1DatabaseBinding;
+  orbit_gallery_db?: D1DatabaseBinding;
 }
 
 export function getSafeCloudflareEnv(): CloudflareEnv {
@@ -37,13 +43,22 @@ export function getSafeCloudflareEnv(): CloudflareEnv {
   return {};
 }
 
+function getBucket(env: CloudflareEnv): R2BucketBinding | undefined {
+  return env.orbit_gallery || env.GALLERY_BUCKET;
+}
+
+function getDatabase(env: CloudflareEnv): D1DatabaseBinding | undefined {
+  return env.orbit_gallery_db || env.DB;
+}
+
 // ---------------------------------------------------------------------------
 // R2 Storage Helpers (with local fallback)
 // ---------------------------------------------------------------------------
 export async function saveImageToR2(key: string, buffer: Uint8Array, contentType = 'image/png'): Promise<string> {
   const env = getSafeCloudflareEnv();
-  if (env.GALLERY_BUCKET) {
-    await env.GALLERY_BUCKET.put(key, buffer, {
+  const bucket = getBucket(env);
+  if (bucket) {
+    await bucket.put(key, buffer, {
       httpMetadata: { contentType },
     });
     return key;
@@ -56,8 +71,9 @@ export async function saveImageToR2(key: string, buffer: Uint8Array, contentType
 
 export async function getImageFromR2(key: string): Promise<{ buffer: Uint8Array; contentType: string } | null> {
   const env = getSafeCloudflareEnv();
-  if (env.GALLERY_BUCKET) {
-    const obj = await env.GALLERY_BUCKET.get(key);
+  const bucket = getBucket(env);
+  if (bucket) {
+    const obj = await bucket.get(key);
     if (!obj) return null;
     const arrayBuffer = await new Response(obj.body).arrayBuffer();
     return {
@@ -77,8 +93,9 @@ export async function getImageFromR2(key: string): Promise<{ buffer: Uint8Array;
 // ---------------------------------------------------------------------------
 export async function insertGalleryPostToDB(post: GalleryPost): Promise<GalleryPost> {
   const env = getSafeCloudflareEnv();
-  if (env.DB) {
-    await env.DB.prepare(`
+  const db = getDatabase(env);
+  if (db) {
+    await db.prepare(`
       INSERT INTO gallery_posts (
         id, user_id, user_name, user_avatar, title, description, mode,
         image_key, thumbnail_key, plain_text, width, height, unit_name,
@@ -117,7 +134,8 @@ export async function queryGalleryPostsFromDB(
   offset: number = 0
 ): Promise<{ posts: GalleryPost[]; total: number }> {
   const env = getSafeCloudflareEnv();
-  if (env.DB) {
+  const db = getDatabase(env);
+  if (db) {
     let whereClause = '';
     const params: any[] = [];
 
@@ -130,15 +148,15 @@ export async function queryGalleryPostsFromDB(
 
     const countQuery = `SELECT COUNT(*) as total FROM gallery_posts ${whereClause}`;
     const countStmt = params.length > 0
-      ? env.DB.prepare(countQuery).bind(...params)
-      : env.DB.prepare(countQuery).bind();
+      ? db.prepare(countQuery).bind(...params)
+      : db.prepare(countQuery).bind();
     const countRes = await countStmt.first<{ total: number }>();
     const total = countRes?.total || 0;
 
     const listQuery = `SELECT * FROM gallery_posts ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
     const listStmt = params.length > 0
-      ? env.DB.prepare(listQuery).bind(...params, limit, offset)
-      : env.DB.prepare(listQuery).bind(limit, offset);
+      ? db.prepare(listQuery).bind(...params, limit, offset)
+      : db.prepare(listQuery).bind(limit, offset);
     
     const rows = await listStmt.all<any>();
     const posts: GalleryPost[] = (rows.results || []).map(r => ({
@@ -182,12 +200,13 @@ export async function queryGalleryPostsFromDB(
 
 export async function incrementPostLikeInDB(postId: string): Promise<number> {
   const env = getSafeCloudflareEnv();
-  if (env.DB) {
-    await env.DB.prepare(`
+  const db = getDatabase(env);
+  if (db) {
+    await db.prepare(`
       UPDATE gallery_posts SET likes_count = likes_count + 1 WHERE id = ?
     `).bind(postId).run();
 
-    const post = await env.DB.prepare(`
+    const post = await db.prepare(`
       SELECT likes_count FROM gallery_posts WHERE id = ?
     `).bind(postId).first<{ likes_count: number }>();
 
