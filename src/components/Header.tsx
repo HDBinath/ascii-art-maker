@@ -46,9 +46,9 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="cyber-header">
       <div className="header-left">
-        <Link href="/" className="btn-utility" title="Return to Landing Page">
+        <Link href="/" className="btn-utility header-home-btn" title="Return to Landing Page">
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Home</span>
+          <span className="utility-label">Home</span>
         </Link>
 
         {/* Orbit Brand Mark & Title */}
@@ -105,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* CRT Scanline Toggle */}
         <button
           type="button"
-          className={`btn-utility ${crtEnabled ? 'active' : ''}`}
+          className={`btn-utility header-crt-btn ${crtEnabled ? 'active' : ''}`}
           onClick={handleCrtToggle}
           title="Toggle CRT Scanlines & Glow"
         >
@@ -116,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Audio Toggle */}
         <button
           type="button"
-          className={`btn-utility ${audioEnabled ? 'active' : ''}`}
+          className={`btn-utility header-audio-btn ${audioEnabled ? 'active' : ''}`}
           onClick={handleAudioToggle}
           title="Toggle Web Audio SFX"
         >

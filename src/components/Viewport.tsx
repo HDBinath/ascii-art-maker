@@ -289,7 +289,8 @@ export const Viewport: React.FC<ViewportProps> = ({
             title="Toggle live camera feed"
           >
             <Camera className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{sourceType === 'webcam' ? 'Stop' : 'Camera'}</span>
+            <span className="hud-label-full">{sourceType === 'webcam' ? 'Stop' : 'Camera'}</span>
+            <span className="hud-label-short">{sourceType === 'webcam' ? 'Stop' : 'Cam'}</span>
           </button>
 
           {sourceType === 'webcam' && onToggleFacingMode && (
@@ -301,6 +302,7 @@ export const Viewport: React.FC<ViewportProps> = ({
             >
               <SwitchCamera className="w-3.5 h-3.5 text-cyan-400" />
               <span className="hud-label-full">{facingMode === 'user' ? 'Rear' : 'Front'}</span>
+              <span className="hud-label-short">{facingMode === 'user' ? 'Rear' : 'Front'}</span>
             </button>
           )}
 
@@ -316,7 +318,8 @@ export const Viewport: React.FC<ViewportProps> = ({
               title="Configure source resolution upscaling"
             >
               <Scaling className="w-3.5 h-3.5 text-pink-400" />
-              <span>Scale: {options.upscaleFactor}x</span>
+              <span className="hud-label-full">Scale: {options.upscaleFactor}x</span>
+              <span className="hud-label-short">{options.upscaleFactor}x</span>
               <ChevronDown className="w-3 h-3 text-neutral-400" />
             </button>
 
@@ -374,16 +377,17 @@ export const Viewport: React.FC<ViewportProps> = ({
         <div className="hud-status-group flex items-center gap-2">
           <span className="hud-badge active">
             <span className="pulse-dot" />
-            <span>RENDER ENGINE: {options.mode.toUpperCase()}</span>
+            <span className="hud-label-full">RENDER ENGINE: {options.mode.toUpperCase()}</span>
+            <span className="hud-label-short">{options.mode.toUpperCase()}</span>
           </span>
 
           {hasImage && !isProcessing && (
             <>
-              <span className="hud-meta">
+              <span className="hud-meta hud-meta-dim">
                 <Maximize2 className="w-3.5 h-3.5 text-neutral-300" />
                 <span>{stats.width} × {stats.height}</span>
               </span>
-              <span className="hud-meta">
+              <span className="hud-meta hud-meta-count">
                 <Hash className="w-3.5 h-3.5 text-pink-400" />
                 <span>{stats.count.toLocaleString()} {stats.unitName}</span>
               </span>
@@ -407,7 +411,8 @@ export const Viewport: React.FC<ViewportProps> = ({
               title="Toggle Split-Screen Comparison Slider"
             >
               <SplitSquareHorizontal className="w-3.5 h-3.5" />
-              <span>{splitView ? 'SPLIT VIEW' : 'FULL VIEW'}</span>
+              <span className="hud-label-full">{splitView ? 'SPLIT VIEW' : 'FULL VIEW'}</span>
+              <span className="hud-label-short">{splitView ? 'SPLIT' : 'FULL'}</span>
             </button>
           )}
         </div>
@@ -428,6 +433,7 @@ export const Viewport: React.FC<ViewportProps> = ({
                 <Download className="w-3.5 h-3.5" />
                 <span className="hud-label-full">Export PNG ({options.exportScale}x)</span>
                 <span className="hud-label-short">Export ({options.exportScale}x)</span>
+                <span className="hud-label-tiny">{options.exportScale}x</span>
               </button>
 
               <button
@@ -534,7 +540,8 @@ export const Viewport: React.FC<ViewportProps> = ({
             title="Save rendered creation to your Art Vault library"
           >
             <BookmarkPlus className="w-3.5 h-3.5 text-pink-400" />
-            <span>Save</span>
+            <span className="hud-label-full">Save</span>
+            <span className="hud-label-short">Save</span>
           </button>
         </div>
       </div>

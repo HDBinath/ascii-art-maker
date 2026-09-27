@@ -1729,7 +1729,8 @@ body {
    Responsive Label & Display Helpers
    ========================================================================== */
 .mode-label-short,
-.hud-label-short {
+.hud-label-short,
+.hud-label-tiny {
   display: none;
 }
 
@@ -1804,16 +1805,20 @@ body {
    Responsive Breakpoints
    ========================================================================== */
 
-/* Tablet (max-width: 1024px) */
+/* Tablet & Intermediate (max-width: 1024px) */
 @media (max-width: 1024px) {
   .cyber-header {
-    padding: 0 16px;
+    padding: 0 14px;
+  }
+  .header-left {
+    gap: 12px;
   }
   .brand-tag {
     display: none;
   }
   .viewport-hud-bar {
     padding: 6px 12px;
+    gap: 8px;
   }
   .bottom-dock-container {
     padding: 10px 16px;
@@ -1821,8 +1826,35 @@ body {
   }
 }
 
-/* Mobile Dock Drawer Switch (max-width: 860px) */
+/* Mobile Dock Drawer Switch & Intermediate Breakpoint (max-width: 860px) */
 @media (max-width: 860px) {
+  .cyber-header {
+    height: 52px;
+    padding: 0 10px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .mode-label-full {
+    display: none;
+  }
+
+  .mode-label-short {
+    display: inline;
+  }
+
+  .tab-btn {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+
+  .header-crt-btn,
+  .header-audio-btn {
+    display: none !important;
+  }
+
   .bottom-dock-wrapper {
     flex-direction: column;
     max-height: 45vh;
@@ -1908,77 +1940,94 @@ body {
 /* Smartphone & Compact Screens (max-width: 640px) */
 @media (max-width: 640px) {
   .cyber-header {
-    height: 52px;
-    padding: 0 10px;
+    height: 48px;
+    padding: 0 8px;
+  }
+
+  .header-left {
+    gap: 6px;
+    min-width: 0;
+    flex-shrink: 1;
   }
 
   .brand-badge {
-    padding-right: 6px;
-    gap: 6px;
+    padding-right: 2px;
+    gap: 4px;
+  }
+
+  .brand-asterisk-icon {
+    width: 20px;
+    height: 19px;
   }
 
   .brand-title {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .mode-nav-tabs {
+    padding: 2px;
     gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .mode-nav-tabs::-webkit-scrollbar {
-    display: none;
+    min-width: 0;
   }
 
   .tab-btn {
-    padding: 4px 8px;
+    padding: 3px 6px;
     font-size: 9px;
+    gap: 4px;
   }
 
-  .mode-label-full {
-    display: none;
-  }
-
-  .mode-label-short {
-    display: inline;
+  .tab-btn svg {
+    width: 12px;
+    height: 12px;
   }
 
   .utility-label {
     display: none;
   }
 
+  .header-crt-btn,
+  .header-audio-btn {
+    display: none !important;
+  }
+
+  .header-right {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
   .btn-utility {
-    padding: 5px 8px;
+    padding: 5px 7px;
+    font-size: 10px;
+    min-height: 28px;
+  }
+
+  .btn-utility svg {
+    width: 13px;
+    height: 13px;
   }
 
   .header-auth-container {
-    padding-left: 4px;
+    padding-left: 3px;
     margin-left: 2px;
-    gap: 4px;
+    gap: 3px;
   }
 
   .auth-top-bar {
-    padding: 0 16px;
-    height: 60px;
+    padding: 0 12px;
+    height: 52px;
   }
 
   .auth-page-wrapper {
-    padding: 70px 16px 30px;
+    padding: 64px 12px 24px;
   }
 
-  /* Upper HUD Toolbar Mobile */
+  /* Upper HUD Toolbar Mobile - GUARANTEED VISIBLE EXPORT & SAVE BUTTONS */
   .viewport-hud-bar {
-    padding: 5px 8px;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .viewport-hud-bar::-webkit-scrollbar {
-    display: none;
+    padding: 4px 8px;
+    gap: 4px;
+    overflow-x: visible;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .hud-label-full {
@@ -1989,18 +2038,80 @@ body {
     display: inline;
   }
 
-  .hud-badge {
-    font-size: 9px;
-    padding: 2px 6px;
+  .hud-source-group {
+    gap: 4px;
+    flex-shrink: 0;
   }
 
-  .hud-meta {
-    font-size: 9px;
+  .btn-hud-tool {
+    padding: 4px 6px;
+    font-size: 9.5px;
+    height: 28px;
+    gap: 4px;
+  }
+
+  .btn-hud-tool svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .hud-divider {
+    display: none;
+  }
+
+  .hud-status-group {
+    display: none;
+  }
+
+  .hud-export-group {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .hud-export-split-btn {
+    border-radius: 5px;
+  }
+
+  .btn-hud-export {
+    padding: 4px 7px;
+    font-size: 9.5px;
+    height: 28px;
+    gap: 4px;
+  }
+
+  .btn-hud-export svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .btn-hud-export-trigger {
+    padding: 4px 5px;
+    height: 28px;
+  }
+
+  .btn-hud-export-trigger svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .btn-hud-save {
+    padding: 4px 8px;
+    font-size: 9.5px;
+    height: 28px;
+    gap: 4px;
+  }
+
+  .btn-hud-save svg {
+    width: 12px;
+    height: 12px;
   }
 
   .hud-popover-dropdown {
     position: fixed;
-    top: 98px;
+    top: 92px;
     right: 8px;
     left: auto;
     width: calc(100vw - 16px);
@@ -2010,7 +2121,7 @@ body {
 
   .hud-popover-dropdown.scale-dropdown {
     position: fixed;
-    top: 98px;
+    top: 92px;
     left: 8px;
     right: auto;
     width: calc(100vw - 16px);
@@ -2048,12 +2159,13 @@ body {
 
   /* Viewport Idle Dropzone */
   .viewport-idle-dropzone {
-    padding: 32px 18px;
+    padding: 28px 16px;
     width: 95%;
+    gap: 10px;
   }
 
   .idle-title {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .idle-subtitle {
@@ -2064,11 +2176,14 @@ body {
     flex-direction: column;
     width: 100%;
     gap: 8px;
+    margin: 4px 0;
   }
 
   .btn-idle-action {
     width: 100%;
     justify-content: center;
+    padding: 8px 14px;
+    font-size: 11px;
   }
 
   /* Bottom Dock Single Column Sliders on Small Phones */
@@ -2089,15 +2204,37 @@ body {
 
 /* Extra Small Phones (max-width: 400px) */
 @media (max-width: 400px) {
+  .cyber-header {
+    padding: 0 5px;
+  }
+
   .brand-title {
     display: none;
   }
-  .btn-utility {
-    padding: 4px 6px;
+
+  .mode-nav-tabs {
+    gap: 1px;
   }
+
   .tab-btn {
-    padding: 3px 6px;
-    font-size: 8px;
+    padding: 3px 4px;
+    font-size: 8.5px;
+  }
+
+  .btn-utility {
+    padding: 4px 5px;
+  }
+
+  .btn-hud-tool {
+    padding: 4px 4px;
+  }
+
+  .btn-hud-export {
+    padding: 4px 5px;
+  }
+
+  .btn-hud-save {
+    padding: 4px 5px;
   }
 }
 
