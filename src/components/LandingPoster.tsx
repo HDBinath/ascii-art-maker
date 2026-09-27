@@ -436,7 +436,8 @@ export const LandingPoster: React.FC = () => {
             className="sticky-launch-btn"
             onClick={handleLaunchStudio}
           >
-            <span>{isSignedIn ? 'Open Studio' : 'Launch Studio'}</span>
+            <Sliders className="w-3.5 h-3.5 text-pink-400" />
+            <span>Go to Studio</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -509,10 +510,54 @@ export const LandingPoster: React.FC = () => {
                 type="button"
                 className="hero-launch-pill"
                 onClick={handleLaunchStudio}
-                aria-label="Launch Studio"
+                aria-label="Go to Studio"
               >
-                <span>{isSignedIn ? 'Open Studio' : 'Launch Studio'}</span>
+                <Sliders className="w-4 h-4 text-pink-400 mr-1.5" />
+                <span>Go to Studio</span>
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </button>
+            </div>
+          </div>
+
+          {/* Dedicated Mobile View Top Bar (< 900px) */}
+          <div className="hero-mobile-top-bar">
+            <a href="#home" className="mobile-brand-link" aria-label="Orbit Home">
+              <svg viewBox="0 0 66 62" fill="none" xmlns="http://www.w3.org/2000/svg" className="mobile-asterisk-svg">
+                <line x1="33" y1="1" x2="33" y2="61" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                <line x1="3" y1="31" x2="63" y2="31" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                <line x1="11.8" y1="9.8" x2="54.2" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+                <line x1="54.2" y1="9.8" x2="11.8" y2="52.2" stroke="#ffffff" strokeWidth="5" strokeLinecap="square" />
+              </svg>
+              <div className="mobile-brand-title">
+                <span>OR</span>
+                <span className="text-pink-400">BIT</span>
+              </div>
+            </a>
+
+            <div className="mobile-top-bar-actions">
+              <button
+                type="button"
+                className="mobile-quick-launch-btn"
+                onClick={handleLaunchStudio}
+                aria-label="Go to Studio"
+              >
+                <Sliders className="w-3.5 h-3.5 text-pink-400" />
+                <span>Go to Studio</span>
+              </button>
+
+              {/* Mobile Burger Button */}
+              <button
+                type="button"
+                className={`mobile-burger-inline ${menuOpen ? 'open' : ''}`}
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="Toggle navigation menu"
+                aria-expanded={menuOpen}
+              >
+                <div className="mobile-burger-lines">
+                  <span />
+                  <span />
+                  <span />
+                </div>
               </button>
             </div>
           </div>
@@ -551,6 +596,30 @@ export const LandingPoster: React.FC = () => {
             </div>
           </div>
 
+          {/* Prominent Center Stage CTA Hub (Visible on Desktop & Mobile) */}
+          <div className="hero-center-cta-dock">
+            <button
+              type="button"
+              className="btn-hero-studio-primary"
+              onClick={handleLaunchStudio}
+              aria-label="Go to Studio and Convert Art"
+            >
+              <div className="btn-icon-circle">
+                <Sliders className="w-4 h-4 text-pink-400" />
+              </div>
+              <div className="btn-text-block">
+                <span className="btn-main-text">Go to Studio</span>
+                <span className="btn-sub-text">Create ASCII & Dither Art</span>
+              </div>
+              <ArrowRight className="w-4 h-4 btn-arrow-icon" />
+            </button>
+
+            <Link href="/gallery" className="btn-hero-gallery-secondary">
+              <Globe className="w-4 h-4 text-cyan-400" />
+              <span>Explore Gallery</span>
+            </Link>
+          </div>
+
           {/* Left Corner Copy - Tailored for Generative ASCII & Dither Art */}
           <p className="support-copy support-copy--left">
             <span className="support-copy__inner">
@@ -564,21 +633,6 @@ export const LandingPoster: React.FC = () => {
               Every character matrix,<br />infinitely scalable.
             </span>
           </p>
-
-          {/* Mobile Burger Button */}
-          <button
-            type="button"
-            className={`mobile-burger ${menuOpen ? 'open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle navigation menu"
-            aria-expanded={menuOpen}
-          >
-            <div className="mobile-burger-lines">
-              <span />
-              <span />
-              <span />
-            </div>
-          </button>
 
           {/* Mobile Backdrop Scrim */}
           <div
@@ -606,7 +660,7 @@ export const LandingPoster: React.FC = () => {
                   handleLaunchStudio(e);
                 }}
               >
-                Studio
+                Go to Studio
               </button>
             </nav>
 
@@ -644,7 +698,9 @@ export const LandingPoster: React.FC = () => {
                 handleLaunchStudio(e);
               }}
             >
-              {isSignedIn ? 'Open Studio' : 'Launch Studio'}
+              <Sliders className="w-5 h-5 text-pink-500 mr-2" />
+              <span>Go to Studio</span>
+              <ArrowRight className="w-4 h-4 ml-2" />
             </button>
           </div>
         </section>
